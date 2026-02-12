@@ -838,13 +838,69 @@
                 <div class="bg-yellow-50 rounded-xl p-4"><p class="text-yellow-600 text-sm">En attente</p><p id="adminStatPending" class="text-2xl font-bold text-yellow-700">0</p></div>
             </div>
         </div>
+        <div class="tabs" style="max-width:56rem;margin:0 auto">
+            <button onclick="showAdminTab('commerces')" id="aTabCommerces" class="active">🏪 Commerces</button>
+            <button onclick="showAdminTab('suivi')" id="aTabSuivi">📈 Suivi</button>
+        </div>
         <main style="max-width:56rem;margin:0 auto;padding:1rem">
-            <div id="adminMerchantsList" class="space-y-3"></div>
-            <h3 class="font-semibold mt-6 mb-3">📝 Inscriptions en attente</h3>
-            <div id="adminPendingList" class="space-y-3"></div>
+            <!-- ONGLET COMMERCES -->
+            <div id="aContentCommerces">
+                <div id="adminMerchantsList" class="space-y-3"></div>
+                <h3 class="font-semibold mt-6 mb-3">📝 Inscriptions en attente</h3>
+                <div id="adminPendingList" class="space-y-3"></div>
+            </div>
+
+            <!-- ONGLET SUIVI -->
+            <div id="aContentSuivi" class="hidden">
+                <!-- Bouton snapshot -->
+                <div class="bg-white rounded-2xl card-shadow p-4 mb-4" style="display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <h3 class="font-semibold text-gray-700">📸 Snapshot quotidien</h3>
+                        <p id="suiviLastSnapshot" class="text-sm text-gray-500">Cliquez pour enregistrer l'état du jour</p>
+                    </div>
+                    <button onclick="doSnapshot()" id="btnSnapshot" style="background:#1e3a5f;color:white;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.875rem">📸 Snapshot</button>
+                </div>
+
+                <!-- Alerte anomalies -->
+                <div id="suiviAlerteBanner" class="hidden" style="background:#fef2f2;border:1px solid #fecaca;border-radius:1rem;padding:1rem;margin-bottom:1rem">
+                    <p style="color:#991b1b;font-weight:600">⚠️ Anomalies détectées</p>
+                    <div id="suiviAlerteDetail" class="text-sm" style="color:#991b1b"></div>
+                </div>
+
+                <!-- Sélecteur de période -->
+                <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+                    <button onclick="loadSuiviGraphique('semaine')" class="btn-periode" data-periode="semaine" style="padding:0.4rem 0.8rem;border-radius:0.5rem;font-size:0.8rem;border:1px solid #d1d5db;background:white">7j</button>
+                    <button onclick="loadSuiviGraphique('mois')" class="btn-periode active" data-periode="mois" style="padding:0.4rem 0.8rem;border-radius:0.5rem;font-size:0.8rem;border:1px solid #2563eb;background:#eff6ff;color:#2563eb">30j</button>
+                    <button onclick="loadSuiviGraphique('3mois')" class="btn-periode" data-periode="3mois" style="padding:0.4rem 0.8rem;border-radius:0.5rem;font-size:0.8rem;border:1px solid #d1d5db;background:white">3 mois</button>
+                    <button onclick="loadSuiviGraphique('annee')" class="btn-periode" data-periode="annee" style="padding:0.4rem 0.8rem;border-radius:0.5rem;font-size:0.8rem;border:1px solid #d1d5db;background:white">1 an</button>
+                    <button onclick="loadSuiviGraphique('5ans')" class="btn-periode" data-periode="5ans" style="padding:0.4rem 0.8rem;border-radius:0.5rem;font-size:0.8rem;border:1px solid #d1d5db;background:white">5 ans</button>
+                </div>
+
+                <!-- Graphique réseau -->
+                <div class="bg-white rounded-2xl card-shadow p-4 mb-4">
+                    <h3 class="font-semibold text-gray-700 mb-2">📊 Total réseau Espoyr #</h3>
+                    <canvas id="chartReseau" height="200"></canvas>
+                </div>
+
+                <!-- Graphique par commerce -->
+                <div class="bg-white rounded-2xl card-shadow p-4 mb-4">
+                    <h3 class="font-semibold text-gray-700 mb-2">🏪 Stock par commerce</h3>
+                    <canvas id="chartCommerces" height="250"></canvas>
+                </div>
+
+                <!-- Gestion coefficients -->
+                <div class="bg-white rounded-2xl card-shadow p-4">
+                    <h3 class="font-semibold text-gray-700 mb-2">⚖️ Coefficients de pondération</h3>
+                    <p class="text-sm text-gray-500 mb-3">Ajustez le poids relatif de chaque commerce pour la détection d'anomalies</p>
+                    <div id="suiviCoefficients"></div>
+                </div>
+            </div>
         </main>
     </div>
 
+
+    <!-- ========== Chart.js pour graphiques Suivi ========== -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 
     <!-- ========== QRCode.js intégré ========== -->
     <script>
@@ -853,7 +909,7 @@
 
     <!-- ========== APPLICATION ========== -->
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwbdV6NYtfZ4OE7ZTJZe7owab1HU2FvtdTp3igOt6sxoYpQOHY4BEfeIVeD9nn_eXi4GQ/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwjse8emtTqwgC-IHzZzVbcTXLpgKgkO8xgfs_jmkhKQ61sXdlCPxYQ2muiWGi6kcQ7XQ/exec';
         const QR_BASE_URL = 'https://espoyr.github.io/bons-espoyr/index.html';
         let currentUser = null, currentMerchant = null, ajustType = 'ajout';
         let timerInterval = null;
@@ -1352,8 +1408,10 @@
             const result = await apiPost({ 
                 action: 'cloturerJournee', 
                 codeCommerce: currentMerchant.code, 
-                pin: currentUser.pin, 
+                pin: String(currentUser.pin), 
+                date: getTodayStr(),
                 stockFin: G, 
+                stockDebut: X,
                 paiementsClients: H 
             });
             
@@ -1371,6 +1429,7 @@
                 }
                 showAlert(msgFinal);
             } else {
+                console.error('Clôture caissier échouée:', JSON.stringify(result), 'PIN:', currentUser.pin, 'Code:', currentMerchant.code);
                 showAlert('Erreur : ' + (result.error || 'Échec'));
             }
         }
@@ -1636,13 +1695,14 @@
             
             if (!confirm(msg)) return;
             
-            var result = await apiPost({ action: 'cloturerJournee', codeCommerce: currentMerchant.code, pin: currentUser.pin, stockFin: f, paiementsClients: H });
+            var result = await apiPost({ action: 'cloturerJournee', codeCommerce: currentMerchant.code, pin: String(currentUser.pin), date: getTodayStr(), stockFin: f, stockDebut: d, paiementsClients: H });
             
             if (result.success) {
                 showAlert('Journee cloturee ! Stock actuel : ' + formatNum(f) + ' #');
                 loadManagerDashboard();
             } else {
-                showAlert('Erreur : ' + (result.error || 'Echec de la cloture'));
+                console.error('Clôture échouée:', JSON.stringify(result), 'PIN:', currentUser.pin, 'Code:', currentMerchant.code);
+                showAlert('Erreur : ' + (result.error || 'Echec de la cloture') + '\n\nSi le problème persiste, vérifiez que l\'employé existe dans la feuille Employes avec le PIN ' + currentUser.pin + ' et le code ' + currentMerchant.code);
             }
         }
 
@@ -1989,6 +2049,152 @@
             if (!confirm('Refuser ?')) return;
             await apiPost({ action: 'rejectMerchant', code });
             loadAdminDashboard();
+        }
+
+        // === ONGLETS ADMIN ===
+        function showAdminTab(tab) {
+            document.getElementById('aContentCommerces').classList.add('hidden');
+            document.getElementById('aContentSuivi').classList.add('hidden');
+            document.getElementById('aTabCommerces').classList.remove('active');
+            document.getElementById('aTabSuivi').classList.remove('active');
+            document.getElementById('aContent' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
+            document.getElementById('aTab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+            if (tab === 'suivi') loadSuiviTab();
+        }
+
+        // === SUIVI GRAPHIQUE ===
+        let chartReseau = null;
+        let chartCommerces = null;
+
+        async function loadSuiviTab() {
+            loadSuiviAlertes();
+            loadSuiviGraphique('mois');
+            loadSuiviCoefficients();
+        }
+
+        async function doSnapshot() {
+            const btn = document.getElementById('btnSnapshot');
+            btn.disabled = true;
+            btn.textContent = '⏳ En cours...';
+            try {
+                const result = await apiPost({ action: 'snapshotQuotidien' });
+                if (result.success) {
+                    document.getElementById('suiviLastSnapshot').textContent = '✅ ' + (result.message || 'Snapshot du ' + result.date + ' — ' + result.nbCommerces + ' commerces');
+                    loadSuiviGraphique('mois');
+                    loadSuiviAlertes();
+                } else {
+                    showAlert(result.error || 'Erreur snapshot');
+                }
+            } catch(err) {
+                showAlert('Erreur: ' + err.message);
+            }
+            btn.disabled = false;
+            btn.textContent = '📸 Snapshot';
+        }
+
+        async function loadSuiviAlertes() {
+            try {
+                const result = await apiGet('getAlerteSnapshot');
+                if (result.success) {
+                    if (result.date) {
+                        document.getElementById('suiviLastSnapshot').textContent = 'Dernier snapshot : ' + result.date + ' — Total réseau : ' + result.totalReseau + ' #';
+                    }
+                    if (result.hasAlerte && result.anomalies && result.anomalies.length > 0) {
+                        document.getElementById('suiviAlerteBanner').classList.remove('hidden');
+                        document.getElementById('suiviAlerteDetail').innerHTML = result.anomalies.map(function(a) {
+                            return '<p>' + a.nom + ' : ' + a.stockPondere + '# pondéré (ratio ' + a.ratio + 'x)</p>';
+                        }).join('');
+                    } else {
+                        document.getElementById('suiviAlerteBanner').classList.add('hidden');
+                    }
+                }
+            } catch(err) { console.error('Erreur alertes:', err); }
+        }
+
+        async function loadSuiviGraphique(periode) {
+            document.querySelectorAll('.btn-periode').forEach(function(btn) {
+                if (btn.dataset.periode === periode) {
+                    btn.style.border = '1px solid #2563eb';
+                    btn.style.background = '#eff6ff';
+                    btn.style.color = '#2563eb';
+                } else {
+                    btn.style.border = '1px solid #d1d5db';
+                    btn.style.background = 'white';
+                    btn.style.color = '#374151';
+                }
+            });
+            try {
+                const result = await apiGet('getHistorique', { periode: periode });
+                if (!result.success) return;
+
+                // Graphique réseau
+                var rLabels = result.totalReseau.map(function(r) { return formatDateLabel(r.date, periode); });
+                var rData = result.totalReseau.map(function(r) { return r.total; });
+                if (chartReseau) chartReseau.destroy();
+                chartReseau = new Chart(document.getElementById('chartReseau').getContext('2d'), {
+                    type: 'line',
+                    data: { labels: rLabels, datasets: [{ label: 'Total # réseau', data: rData, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', fill: true, tension: 0.3, pointRadius: rData.length > 60 ? 0 : 3 }] },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                });
+
+                // Graphique par commerce
+                var commerces = {};
+                result.data.forEach(function(d) {
+                    if (!commerces[d.codeCommerce]) commerces[d.codeCommerce] = { nom: d.nomCommerce, points: {} };
+                    commerces[d.codeCommerce].points[d.date] = d.stockReel;
+                });
+                var allDates = result.totalReseau.map(function(r) { return r.date; });
+                var colors = ['#2563eb','#dc2626','#16a34a','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16'];
+                var datasets = [], ci = 0;
+                for (var code in commerces) {
+                    var c = commerces[code];
+                    datasets.push({ label: c.nom, data: allDates.map(function(d) { return c.points[d] || 0; }), borderColor: colors[ci % colors.length], backgroundColor: 'transparent', tension: 0.3, pointRadius: allDates.length > 60 ? 0 : 3 });
+                    ci++;
+                }
+                if (chartCommerces) chartCommerces.destroy();
+                chartCommerces = new Chart(document.getElementById('chartCommerces').getContext('2d'), {
+                    type: 'line',
+                    data: { labels: allDates.map(function(d) { return formatDateLabel(d, periode); }), datasets: datasets },
+                    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }, scales: { y: { beginAtZero: true } } }
+                });
+            } catch(err) { console.error('Erreur graphique:', err); }
+        }
+
+        function formatDateLabel(dateStr, periode) {
+            if (!dateStr) return '';
+            if (periode === '5ans') { var p = dateStr.split('-'); var m = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']; return m[parseInt(p[1]) - 1] + ' ' + p[0]; }
+            var d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('fr-BE', { day: 'numeric', month: 'short' });
+        }
+
+        async function loadSuiviCoefficients() {
+            try {
+                const result = await apiGet('getMerchants');
+                if (!result.success) return;
+                var actifs = result.merchants.filter(function(m) { return m.status === 'active'; });
+                var html = '<table style="width:100%;border-collapse:collapse;font-size:0.875rem">';
+                html += '<tr style="border-bottom:1px solid #e5e7eb"><th style="text-align:left;padding:0.5rem">Commerce</th><th style="padding:0.5rem">Coefficient</th><th style="padding:0.5rem"></th></tr>';
+                actifs.forEach(function(m) {
+                    var coeff = parseFloat(m.coefficient) || 1;
+                    html += '<tr style="border-bottom:1px solid #f3f4f6">';
+                    html += '<td style="padding:0.5rem">' + m.nom + '</td>';
+                    html += '<td style="padding:0.5rem;text-align:center"><input type="number" id="coeff_' + m.code + '" value="' + coeff + '" min="0.1" step="0.1" style="width:5rem;text-align:center;border:1px solid #d1d5db;border-radius:0.25rem;padding:0.25rem"></td>';
+                    html += '<td style="padding:0.5rem;text-align:center"><button onclick="saveCoefficient(\'' + m.code + '\')" style="background:#1e3a5f;color:white;padding:0.25rem 0.75rem;border-radius:0.25rem;font-size:0.75rem">💾</button></td>';
+                    html += '</tr>';
+                });
+                html += '</table>';
+                document.getElementById('suiviCoefficients').innerHTML = html;
+            } catch(err) { console.error('Erreur coefficients:', err); }
+        }
+
+        async function saveCoefficient(code) {
+            var input = document.getElementById('coeff_' + code);
+            var val = parseFloat(input.value);
+            if (isNaN(val) || val <= 0) { showAlert('Coefficient invalide'); return; }
+            try {
+                var result = await apiPost({ action: 'setCoefficient', code: code, coefficient: val });
+                if (result.success) { showAlert('✅ Coefficient mis à jour'); } else { showAlert(result.error || 'Erreur'); }
+            } catch(err) { showAlert('Erreur: ' + err.message); }
         }
 
         function logout() { 
