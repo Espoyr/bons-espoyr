@@ -608,7 +608,8 @@
                 </div>
                 <button onclick="logout()">Déconnexion</button>
             </div>
-        </header>        
+        </header>
+        
         <div class="tabs" style="max-width:42rem;margin:0 auto">
             <button onclick="showManagerTab('stock')" id="mTabStock" class="active">📊 Stock</button>
             <button onclick="showManagerTab('historique')" id="mTabHistorique">📋 Historique</button>
@@ -1404,7 +1405,7 @@
             const F = cashierTotalF || 0;
             const H = G - X - C + F;
             
-        const result = await apiPost({ 
+            const result = await apiPost({ 
                 action: 'cloturerJournee', 
                 codeCommerce: currentMerchant.code, 
                 pin: String(currentUser.pin), 
@@ -1517,12 +1518,12 @@
                 currentCaisses = result.caisses || [];
                 
                 // DEBUG: voir les données reçues
-console.log('getMerchantDashboard result.merchant:', JSON.stringify(result.merchant));
-console.log('Stock du commerce:', result.merchant?.stock);
-
-// Stock actuel = stock du commerce (colonne M de Commercants)
-const stockCommerce = parseFloat(result.merchant?.stock) || 0;
-document.getElementById('mgrStockActuel').innerHTML = formatNum(stockCommerce) + ' <span style="font-size:1.5rem">#</span>';
+                console.log('getMerchantDashboard result.merchant:', JSON.stringify(result.merchant));
+                console.log('Stock du commerce:', result.merchant?.stock);
+                
+                // Stock actuel = stock du commerce (colonne M de Commercants)
+                const stockCommerce = parseFloat(result.merchant?.stock) || 0;
+                document.getElementById('mgrStockActuel').innerHTML = formatNum(stockCommerce) + ' <span style="font-size:1.5rem">#</span>';
                 
                 const nbAlertes = result.stats?.nbAlertesNonLues || 0;
                 lastNbAlertes = nbAlertes;
@@ -1698,7 +1699,7 @@ document.getElementById('mgrStockActuel').innerHTML = formatNum(stockCommerce) +
             
             if (!confirm(msg)) return;
             
-          var result = await apiPost({ action: 'cloturerJournee', codeCommerce: currentMerchant.code, pin: String(currentUser.pin), date: getTodayStr(), stockFin: f, stockDebut: d, paiementsClients: H });
+            var result = await apiPost({ action: 'cloturerJournee', codeCommerce: currentMerchant.code, pin: String(currentUser.pin), date: getTodayStr(), stockFin: f, stockDebut: d, paiementsClients: H });
             
             if (result.success) {
                 showAlert('Journee cloturee ! Stock actuel : ' + formatNum(f) + ' #');
@@ -1818,7 +1819,7 @@ document.getElementById('mgrStockActuel').innerHTML = formatNum(stockCommerce) +
                         // Trouver le nom de l'émetteur
                         const deNom = currentCaisses.find(x => x.id === t.de)?.nom || 'Inconnu';
                         // Si c'est MOI (le responsable connecté) qui reçoit, afficher Valider/Refuser
-                      if (String(c.pin) === String(currentUser.pin)) {
+                        if (String(c.pin) === String(currentUser.pin)) {
                             transfertsEntrantsCount++;
                             transEnAttenteHtml += '<div class="transfert-card"><h4>📥 De ' + deNom + '</h4><p><strong>' + formatNum(t.montant) + ' #</strong></p><p class="expiration">⏱️ Expire dans ' + minutesLeft + ' min</p><div class="actions"><button onclick="validerTransfertMgr(\'' + t.id + '\')" class="btn-success">✓ Valider</button><button onclick="refuserTransfertMgr(\'' + t.id + '\')" class="btn-danger">✗ Refuser</button></div></div>';
                         } else {
