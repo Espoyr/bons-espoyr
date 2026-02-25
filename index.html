@@ -518,10 +518,7 @@
                     
                     <!-- Validé et verrouillé -->
                     <div id="stockDebutValide" class="hidden mt-3 p-3 bg-green-50 border-2 border-green-300 rounded-lg">
-                        <div style="display:flex;justify-content:space-between;align-items:center">
-                            <p class="text-sm text-green-700">✅ Stock de début validé : <strong id="stockDebutValideVal">0</strong>#</p>
-                            <button onclick="modifierStockDebut()" class="text-sm text-blue-600 underline">✏️ Modifier</button>
-                        </div>
+                        <p class="text-sm text-green-700">✅ Stock de début validé : <strong id="stockDebutValideVal">0</strong>#</p>
                     </div>
                 </div>
                 
@@ -751,7 +748,7 @@
                 </div>
                 
                 <!-- Formulaire transfert -->
-                <div class="bg-white rounded-2xl card-shadow p-6 mb-4">
+                <div id="mgrFormTransfert" class="bg-white rounded-2xl card-shadow p-6 mb-4">
                     <h3 class="font-semibold text-gray-700 mb-4">🔄 Transfert</h3>
                     <div class="space-y-3">
                         <div>
@@ -940,7 +937,7 @@
 
     <!-- ========== APPLICATION ========== -->
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbx_WRNJ1frFaA3L3DOhuI3eRwDuZECBpvCEsxefCsf40HO8ezPEZvb_UYUoYc-78XAK/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxwbRngSZ40OCLtaZBWrhKmjlQgGNm6-iTC2DPITqz5naALsNie13MOF4RiAP3kM2H2/exec';
         const QR_BASE_URL = 'https://espoyr.github.io/bons-espoyr/index.html';
         let currentUser = null, currentMerchant = null, ajustType = 'ajout';
         let timerInterval = null;
@@ -1273,10 +1270,12 @@
                         
                         cashierSoldeSysteme = parseFloat(result.journee.stockDebut);
                         
-                        // Afficher section retour de bons (caisse ouverte)
-                        document.getElementById('cashierRetourSection').classList.remove('hidden');
-                        const disponible = cashierSoldeSysteme - (result.soldeReserve || 0);
-                        document.getElementById('retourDisponible').textContent = 'Disponible : ' + formatNum(disponible) + '#';
+                        // Afficher section retour de bons (caisse ouverte) seulement si pas caisse unique
+                        if (!result.caisseUnique) {
+                            document.getElementById('cashierRetourSection').classList.remove('hidden');
+                            const disponible = cashierSoldeSysteme - (result.soldeReserve || 0);
+                            document.getElementById('retourDisponible').textContent = 'Disponible : ' + formatNum(disponible) + '#';
+                        }
                     }
                     
                     if (result.journee.stockFin !== null && result.journee.stockFin !== '') {
@@ -1554,6 +1553,12 @@
             if (result.success) {
                 currentMerchant = result.merchant;
                 currentCaisses = result.caisses || [];
+                
+                // Stocker config caisse unique
+                if (result.config) {
+                    currentMerchant.caisseUnique = result.config.caisseUnique || false;
+                    currentMerchant.emailAlertes = result.config.emailAlertes || '';
+                }
                 
                 // DEBUG: voir les données reçues
                 console.log('getMerchantDashboard result.merchant:', JSON.stringify(result.merchant));
@@ -1918,24 +1923,27 @@
             
             let transEnAttenteHtml = '';
             let transfertsEntrantsCount = 0;
-            currentCaisses.forEach(c => {
-                if (c.transfertsEnAttente && c.transfertsEnAttente.length > 0) {
-                    c.transfertsEnAttente.forEach(t => {
-                        const expDate = new Date(t.expiration);
-                        const now = new Date();
-                        const minutesLeft = Math.max(0, Math.round((expDate - now) / 60000));
-                        // Trouver le nom de l'émetteur
-                        const deNom = currentCaisses.find(x => x.id === t.de)?.nom || 'Inconnu';
-                        // Si c'est MOI (le responsable connecté) qui reçoit, afficher Valider/Refuser
-                        if (String(c.pin) === String(currentUser.pin)) {
-                            transfertsEntrantsCount++;
-                            transEnAttenteHtml += '<div class="transfert-card"><h4>📥 De ' + deNom + '</h4><p><strong>' + formatNum(t.montant) + ' #</strong></p><p class="expiration">⏱️ Expire dans ' + minutesLeft + ' min</p><div class="actions"><button onclick="validerTransfertMgr(\'' + t.id + '\')" class="btn-success">✓ Valider</button><button onclick="refuserTransfertMgr(\'' + t.id + '\')" class="btn-danger">✗ Refuser</button></div></div>';
-                        } else {
-                            // Transfert vers un autre employé, afficher juste l'info
-                            transEnAttenteHtml += '<div class="transfert-card"><h4>⏳ De ' + deNom + ' vers ' + c.nom + '</h4><p><strong>' + formatNum(t.montant) + ' #</strong></p><p class="expiration">⏱️ Expire dans ' + minutesLeft + ' min</p></div>';
-                        }
-                    });
-                }
+            
+            // Si caisse unique : pas de transferts à afficher
+            const config = currentMerchant.caisseUnique || false;
+            if (config) {
+                document.getElementById('mgrTransfertsEnAttente').classList.add('hidden');
+                document.getElementById('mgrTransfertsStock').classList.add('hidden');
+                // Cacher aussi le formulaire de transfert
+                document.getElementById('mgrFormTransfert').classList.add('hidden');
+                return;
+            }
+            
+            // Récupérer les transferts en attente pour le responsable connecté
+            const transResult = await apiGet('getTransfertsEnAttente', { code: currentMerchant.code, pin: currentUser.pin });
+            const transfertsEnAttente = (transResult.success && transResult.transferts) ? transResult.transferts : [];
+            
+            transfertsEnAttente.forEach(t => {
+                const expDate = new Date(t.expiration);
+                const now = new Date();
+                const minutesLeft = Math.max(0, Math.round((expDate - now) / 60000));
+                transfertsEntrantsCount++;
+                transEnAttenteHtml += '<div class="transfert-card"><h4>📥 De ' + (t.nomDe || 'Inconnu') + '</h4><p><strong>' + formatNum(t.montant) + ' #</strong>' + (t.motif ? ' — ' + t.motif : '') + '</p><p class="expiration">⏱️ Expire dans ' + minutesLeft + ' min</p><div class="actions"><button onclick="validerTransfertMgr(\'' + t.id + '\')" class="btn-success">✓ Valider</button><button onclick="refuserTransfertMgr(\'' + t.id + '\')" class="btn-danger">✗ Refuser</button></div></div>';
             });
             
             // Mettre à jour le badge des transferts entrants
