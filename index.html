@@ -1098,7 +1098,71 @@
         function showLoader() { document.getElementById('globalLoader').classList.remove('hidden'); }
         function hideLoader() { document.getElementById('globalLoader').classList.add('hidden'); }
         function showPage(id) { document.querySelectorAll('[id$="Page"]').forEach(p => p.classList.add('hidden')); document.getElementById(id)?.classList.remove('hidden'); }
-        function showAlert(msg) { alert(msg); }
+        function showAlert(msg, type) {
+            const modal = document.getElementById('appAlertModal');
+            const icon = document.getElementById('appAlertIcon');
+            const text = document.getElementById('appAlertText');
+            
+            // Détecter le type selon le contenu
+            if (!type) {
+                if (msg.includes('✅') || msg.includes('validé') || msg.includes('confirmé') || msg.includes('réussi') || msg.includes('OK')) type = 'success';
+                else if (msg.includes('❌') || msg.includes('Erreur') || msg.includes('erreur') || msg.includes('non trouvé') || msg.includes('invalide')) type = 'error';
+                else if (msg.includes('⚠️') || msg.includes('Écart') || msg.includes('écart') || msg.includes('Attention')) type = 'warning';
+                else type = 'info';
+            }
+            
+            const configs = {
+                success: { icon: '✅', color: '#16a34a', bg: '#f0fdf4', border: '#86efac' },
+                error:   { icon: '❌', color: '#dc2626', bg: '#fef2f2', border: '#fca5a5' },
+                warning: { icon: '⚠️', color: '#d97706', bg: '#fffbeb', border: '#fcd34d' },
+                info:    { icon: 'ℹ️', color: '#2563eb', bg: '#eff6ff', border: '#93c5fd' }
+            };
+            const cfg = configs[type] || configs.info;
+            
+            icon.textContent = cfg.icon;
+            text.innerHTML = msg.replace(/\n/g, '<br>');
+            text.style.color = cfg.color;
+            modal.querySelector('.alert-box').style.background = cfg.bg;
+            modal.querySelector('.alert-box').style.borderColor = cfg.border;
+            modal.querySelector('.alert-ok-btn').style.background = cfg.color;
+            
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+        
+        function closeAppAlert() {
+            const modal = document.getElementById('appAlertModal');
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+            // Exécuter callback si présent
+            if (window._alertCallback) {
+                const cb = window._alertCallback;
+                window._alertCallback = null;
+                cb();
+            }
+        }
+        
+        function showConfirm(msg, onConfirm) {
+            const modal = document.getElementById('appConfirmModal');
+            document.getElementById('appConfirmText').innerHTML = msg.replace(/\n/g, '<br>');
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            
+            window._confirmCallback = onConfirm;
+        }
+        
+        function closeAppConfirm(confirmed) {
+            const modal = document.getElementById('appConfirmModal');
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+            if (confirmed && window._confirmCallback) {
+                const cb = window._confirmCallback;
+                window._confirmCallback = null;
+                cb();
+            } else {
+                window._confirmCallback = null;
+            }
+        }
         function formatNum(n) { return parseFloat(n||0).toFixed(1).replace('.', ','); }
         function parseNum(val) { return parseFloat(String(val || '0').replace(',', '.')); }
         function getTodayStr() { return new Date().toISOString().split('T')[0]; }
@@ -1495,12 +1559,13 @@
         }
 
         async function refuserTransfertCaissier(transfertId) {
-            if (!confirm('Refuser ce transfert ?')) return;
-            const result = await apiPost({ action: 'refuserTransfert', codeCommerce: currentMerchant.code, pin: currentUser.pin, transfertId });
-            if (result.success) {
-                showAlert('Transfert refusé');
-                loadCashierDashboard();
-            } else showAlert('Erreur: ' + (result.error || 'Échec'));
+            showConfirm('Refuser ce transfert ?', async () => {
+                const result = await apiPost({ action: 'refuserTransfert', codeCommerce: currentMerchant.code, pin: currentUser.pin, transfertId });
+                if (result.success) {
+                    showAlert('Transfert refusé');
+                    loadCashierDashboard();
+                } else showAlert('Erreur: ' + (result.error || 'Échec'));
+            });
         }
 
         async function retournerBons() {
@@ -1509,23 +1574,23 @@
                 return showAlert('Montant invalide');
             }
             
-            if (!confirm('Retourner ' + formatNum(montant) + '# au responsable ?')) return;
-            
-            const result = await apiPost({ 
-                action: 'retournerBons', 
-                codeCommerce: currentMerchant.code, 
-                pin: currentUser.pin, 
-                montant: montant 
-            });
-            
-            if (result.success) {
-                showAlert(result.message);
-                document.getElementById('retourMontant').value = '';
-                loadCashierDashboard();
-            } else {
-                showAlert('Erreur: ' + (result.error || 'Échec'));
+            if (!isNaN(montant) && montant > 0) {
+                showConfirm('Retourner ' + formatNum(montant) + '# au responsable ?', async () => {
+                    const result = await apiPost({ 
+                        action: 'retournerBons', 
+                        codeCommerce: currentMerchant.code, 
+                        pin: currentUser.pin, 
+                        montant: montant 
+                    });
+                    if (result.success) {
+                        showAlert(result.message);
+                        document.getElementById('retourMontant').value = '';
+                        loadCashierDashboard();
+                    } else {
+                        showAlert('Erreur: ' + (result.error || 'Échec'));
+                    }
+                });
             }
-        }
 
         // === RESPONSABLE ===
         var mgrTotalC = 0;
@@ -1608,7 +1673,7 @@
                 const releves = document.getElementById('mgrReleves');
                 if (result.journees?.length) {
                     releves.innerHTML = result.journees.map(j => {
-                        const diff = (j.stockDebut || 0) - (j.stockFin || 0);
+                        const diff = (j.stockFin || 0) - (j.stockDebut || 0);
                         return '<div class="history-item"><span><strong>' + j.nomEmploye + '</strong> ' + new Date(j.date).toLocaleDateString('fr-BE') + '</span><span>' + formatNum(j.stockDebut) + ' → ' + formatNum(j.stockFin) + ' = <strong style="color:' + (diff >= 0 ? '#16a34a' : '#dc2626') + '">' + formatNum(diff) + '</strong></span></div>';
                     }).join('');
                 } else releves.innerHTML = '<p class="text-gray-400 text-center p-4">Aucun relevé</p>';
@@ -1740,18 +1805,15 @@
             
             var msg = 'CLOTURER LA JOURNEE ?\n\nDebut : ' + formatNum(d) + ' #\nAjouts (C) : +' + formatNum(C) + ' #\nRetraits (F) : -' + formatNum(F) + ' #\nFin : ' + formatNum(f) + ' #\n---\nDifference de caisse (H) : ' + formatNum(H) + ' #\n\nLe stock actuel passera a ' + formatNum(f) + ' #';
             
-            if (!confirm(msg)) return;
-            
-            var result = await apiPost({ action: 'cloturerJournee', codeCommerce: currentMerchant.code, pin: String(currentUser.pin), date: getTodayStr(), stockFin: f, stockDebut: d, paiementsClients: H });
-            
-            if (result.success) {
-                showAlert('Journee cloturee ! Stock actuel : ' + formatNum(f) + ' #');
-                loadManagerDashboard();
-            } else {
-                console.error('Clôture échouée:', JSON.stringify(result), 'PIN:', currentUser.pin, 'Code:', currentMerchant.code);
-                showAlert('Erreur : ' + (result.error || 'Echec de la cloture') + '\n\nSi le problème persiste, vérifiez que l\'employé existe dans la feuille Employes avec le PIN ' + currentUser.pin + ' et le code ' + currentMerchant.code);
-            }
-        }
+            showConfirm('CLOTURER LA JOURNEE ?\n\nDebut : ' + formatNum(d) + ' #\nAjouts (C) : +' + formatNum(C) + ' #\nRetraits (F) : -' + formatNum(F) + ' #\nFin : ' + formatNum(f) + ' #\n---\nDifférence de caisse (H) : ' + formatNum(H) + ' #\n\nLe stock actuel passera à ' + formatNum(f) + ' #', async () => {
+                var result = await apiPost({ action: 'cloturerJournee', codeCommerce: currentMerchant.code, pin: String(currentUser.pin), date: getTodayStr(), stockFin: f, stockDebut: d, paiementsClients: H });
+                if (result.success) {
+                    showAlert('Journée clôturée ! Stock actuel : ' + formatNum(f) + ' #');
+                    loadManagerDashboard();
+                } else {
+                    showAlert('Erreur : ' + (result.error || 'Echec de la clôture'));
+                }
+            });
 
         async function mgrSaveStock(type) {
             const val = parseNum(document.getElementById(type === 'debut' ? 'mgrStockDebut' : 'mgrStockFin').value);
@@ -2021,31 +2083,27 @@
         }
 
         async function annulerTransfert(transfertId) {
-            if (!confirm('Annuler ce transfert ?')) return;
-            const result = await apiPost({ action: 'annulerTransfert', codeCommerce: currentMerchant.code, pin: currentUser.pin, transfertId });
-            if (result.success) {
-                showAlert('Transfert annulé');
-                loadCaissesTab();
-            } else showAlert('Erreur: ' + (result.error || 'Échec'));
+            showConfirm('Annuler ce transfert ?', async () => {
+                const result = await apiPost({ action: 'annulerTransfert', codeCommerce: currentMerchant.code, pin: currentUser.pin, transfertId });
+                if (result.success) { showAlert('Transfert annulé'); loadCaissesTab(); }
+                else showAlert('Erreur: ' + (result.error || 'Échec'));
+            });
         }
 
         async function validerTransfertMgr(transfertId) {
-            if (!confirm('Valider ce transfert entrant ?')) return;
-            const result = await apiPost({ action: 'validerTransfert', codeCommerce: currentMerchant.code, pin: currentUser.pin, transfertId });
-            if (result.success) {
-                showAlert('Transfert validé !');
-                loadCaissesTab();
-                loadManagerDashboard();
-            } else showAlert('Erreur: ' + (result.error || 'Échec'));
+            showConfirm('Valider ce transfert entrant ?', async () => {
+                const result = await apiPost({ action: 'validerTransfert', codeCommerce: currentMerchant.code, pin: currentUser.pin, transfertId });
+                if (result.success) { showAlert('Transfert validé !'); loadCaissesTab(); loadManagerDashboard(); }
+                else showAlert('Erreur: ' + (result.error || 'Échec'));
+            });
         }
 
         async function refuserTransfertMgr(transfertId) {
-            if (!confirm('Refuser ce transfert ?')) return;
-            const result = await apiPost({ action: 'refuserTransfert', codeCommerce: currentMerchant.code, pin: currentUser.pin, transfertId });
-            if (result.success) {
-                showAlert('Transfert refusé');
-                loadCaissesTab();
-            } else showAlert('Erreur: ' + (result.error || 'Échec'));
+            showConfirm('Refuser ce transfert ?', async () => {
+                const result = await apiPost({ action: 'refuserTransfert', codeCommerce: currentMerchant.code, pin: currentUser.pin, transfertId });
+                if (result.success) { showAlert('Transfert refusé'); loadCaissesTab(); }
+                else showAlert('Erreur: ' + (result.error || 'Échec'));
+            });
         }
 
         async function marquerEcartLu(transfertId) {
@@ -2128,9 +2186,10 @@
         }
 
         async function deleteEmployee(id) {
-            if (!confirm('Désactiver ?')) return;
-            await apiPost({ action: 'deleteEmployee', id, codeCommerce: currentMerchant.code });
-            loadManagerDashboard();
+            showConfirm('Désactiver cet employé ?', async () => {
+                await apiPost({ action: 'deleteEmployee', id, codeCommerce: currentMerchant.code });
+                loadManagerDashboard();
+            });
         }
 
         // === ADMIN ===
@@ -2166,9 +2225,10 @@
         }
 
         async function rejectMerchant(code) {
-            if (!confirm('Refuser ?')) return;
-            await apiPost({ action: 'rejectMerchant', code });
-            loadAdminDashboard();
+            showConfirm('Refuser cette inscription ?', async () => {
+                await apiPost({ action: 'rejectMerchant', code });
+                loadAdminDashboard();
+            });
         }
 
         // === ONGLETS ADMIN ===
@@ -2338,6 +2398,28 @@
             if (code) { document.getElementById('loginCode').value = code; showPage('loginPage'); }
         });
     </script>
+
+    <!-- ========== MODAL ALERTE MAISON ========== -->
+    <div id="appAlertModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;padding:1rem;z-index:9999">
+        <div class="alert-box" style="background:#eff6ff;border:2px solid #93c5fd;border-radius:1rem;padding:1.5rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+            <div style="display:flex;align-items:flex-start;gap:0.75rem;margin-bottom:1rem">
+                <span id="appAlertIcon" style="font-size:1.5rem;line-height:1">ℹ️</span>
+                <p id="appAlertText" style="flex:1;color:#2563eb;font-size:0.95rem;line-height:1.5;margin:0"></p>
+            </div>
+            <button class="alert-ok-btn" onclick="closeAppAlert()" style="width:100%;background:#2563eb;color:white;padding:0.625rem;border-radius:0.5rem;font-weight:600;border:none;cursor:pointer;font-size:1rem">OK</button>
+        </div>
+    </div>
+
+    <!-- ========== MODAL CONFIRMATION MAISON ========== -->
+    <div id="appConfirmModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;padding:1rem;z-index:9999">
+        <div style="background:white;border-radius:1rem;padding:1.5rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+            <p id="appConfirmText" style="color:#374151;font-size:0.95rem;line-height:1.5;margin-bottom:1.25rem;white-space:pre-line"></p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+                <button onclick="closeAppConfirm(false)" style="padding:0.625rem;border-radius:0.5rem;border:1px solid #d1d5db;background:white;color:#374151;font-weight:600;cursor:pointer;font-size:0.95rem">✕ Annuler</button>
+                <button onclick="closeAppConfirm(true)" style="padding:0.625rem;border-radius:0.5rem;border:none;background:#2563eb;color:white;font-weight:600;cursor:pointer;font-size:0.95rem">✓ Confirmer</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ========== MODAL CONDITIONS ========== -->
     <div id="conditionsModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:1rem;z-index:100">
