@@ -716,6 +716,21 @@
                     <h3 class="font-semibold text-gray-700 mb-4">📝 Ajustements</h3>
                     <div id="mgrAjustements" class="space-y-2 max-h-48 overflow-y-auto"></div>
                 </div>
+                <!-- SECTION ÉCARTS -->
+                <div class="bg-white rounded-2xl card-shadow p-6">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                        <h3 class="font-semibold text-gray-700">⚠️ Historique des écarts</h3>
+                        <button onclick="exporterEcarts()" style="background:#1e3a5f;color:white;padding:0.375rem 0.75rem;border-radius:0.5rem;font-size:0.8rem;border:none;cursor:pointer">⬇️ CSV</button>
+                    </div>
+                    <div style="display:flex;gap:0.5rem;margin-bottom:1rem">
+                        <button onclick="chargerEcarts('mois')" id="btnEcartsMois" style="background:#2563eb;color:white;padding:0.25rem 0.75rem;border-radius:1rem;font-size:0.8rem;border:none;cursor:pointer">Ce mois</button>
+                        <button onclick="chargerEcarts('annee')" id="btnEcartsAnnee" style="background:#e5e7eb;color:#374151;padding:0.25rem 0.75rem;border-radius:1rem;font-size:0.8rem;border:none;cursor:pointer">Cette année</button>
+                        <button onclick="chargerEcarts('tout')" id="btnEcartsTout" style="background:#e5e7eb;color:#374151;padding:0.25rem 0.75rem;border-radius:1rem;font-size:0.8rem;border:none;cursor:pointer">Tout</button>
+                    </div>
+                    <div id="ecartsListe" class="space-y-2 max-h-64 overflow-y-auto">
+                        <p class="text-gray-400 text-center text-sm p-4">Chargement...</p>
+                    </div>
+                </div>
             </div>
             
             <!-- ONGLET EMPLOYÉS -->
@@ -941,7 +956,7 @@
 
     <!-- ========== APPLICATION ========== -->
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwD8bjDrSjQb2KBg9l6Ic-QHn4l6IXOc8sa5nO2YaIIjRC8jb5mkBdiUPOqz6Qm5pYA/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxFm8IimFHtKYmd1s_jnzQG1mE57IF0xuMRn6FchfcveNF06PElBYEpqPtioEBWMeNN/exec';
         const QR_BASE_URL = 'https://espoyr.github.io/bons-espoyr/index.html';
         let currentUser = null, currentMerchant = null, ajustType = 'ajout';
         let timerInterval = null;
@@ -1634,9 +1649,9 @@
                 console.log('getMerchantDashboard result.merchant:', JSON.stringify(result.merchant));
                 console.log('Stock du commerce:', result.merchant?.stock);
                 
-                // Stock actuel = stock du commerce (colonne M de Commercants)
-                const stockCommerce = parseFloat(result.merchant?.stock) || 0;
-                document.getElementById('mgrStockActuel').innerHTML = formatNum(stockCommerce) + ' <span style="font-size:1.5rem">#</span>';
+                // Stock actuel = solde personnel du responsable (pas le total commerce)
+                const soldeResponsable = result.employees?.find(e => e.role === 'responsable')?.solde || 0;
+                document.getElementById('mgrStockActuel').innerHTML = formatNum(soldeResponsable) + ' <span style="font-size:1.5rem">#</span>';
                 
                 const nbAlertes = result.stats?.nbAlertesNonLues || 0;
                 lastNbAlertes = nbAlertes;
@@ -1824,27 +1839,137 @@
         async function mgrSaveStock(type) {
             const val = parseNum(document.getElementById(type === 'debut' ? 'mgrStockDebut' : 'mgrStockFin').value);
             if (isNaN(val) || val < 0) return showAlert('Montant invalide');
+            
             const result = await apiPost({ action: 'saveJournee', codeCommerce: currentMerchant.code, pin: currentUser.pin, date: getTodayStr(), type, montant: val });
-            if (result.success) {
-                const btn = document.getElementById(type === 'debut' ? 'mgrBtnDebut' : 'mgrBtnFin');
-                const input = document.getElementById(type === 'debut' ? 'mgrStockDebut' : 'mgrStockFin');
-                btn.textContent = '✓ OK';
-                if (type === 'debut') {
-                    if (result.tempsRestantSeconds && result.tempsRestantSeconds > 0) {
-                        startMgrTimer(result.tempsRestantSeconds);
-                    } else {
-                        input.disabled = true;
-                        btn.disabled = true;
-                    }
-                    if (result.ecartDetecte) {
-                        showAlert('⚠️ Écart détecté : ' + formatNum(result.ecart) + ' #');
-                    }
+            if (!result.success) return showAlert('Erreur: ' + (result.error || 'Échec'));
+            
+            const btn = document.getElementById(type === 'debut' ? 'mgrBtnDebut' : 'mgrBtnFin');
+            const input = document.getElementById(type === 'debut' ? 'mgrStockDebut' : 'mgrStockFin');
+            btn.textContent = '✓ OK';
+            
+            if (type === 'debut') {
+                if (result.tempsRestantSeconds && result.tempsRestantSeconds > 0) {
+                    startMgrTimer(result.tempsRestantSeconds);
                 } else {
-                    btn.disabled = true;
                     input.disabled = true;
+                    btn.disabled = true;
                 }
-                mgrCalculateDiff();
-            } else showAlert('Erreur: ' + (result.error || 'Échec'));
+                // Écart DÉBUT : alerte + justification obligatoire
+                if (result.ecartDetecte) {
+                    const signe = result.ecart >= 0 ? '+' : '';
+                    demanderJustificationEcart(
+                        '⚠️ Écart au DÉBUT détecté\n\nSystème : ' + formatNum(result.soldeTheorique || 0) + ' #\nDéclaré : ' + formatNum(val) + ' #\nÉcart : ' + signe + formatNum(result.ecart) + ' #',
+                        async function(justification) {
+                            await apiPost({ action: 'saveEcartAvecJustification', codeCommerce: currentMerchant.code, pin: currentUser.pin, moment: 'debut', soldeTheorique: result.soldeTheorique || 0, valeurPhysique: val, justification });
+                        }
+                    );
+                }
+            } else {
+                btn.disabled = true;
+                input.disabled = true;
+                // Écart FIN : alerte + justification obligatoire
+                if (result.ecartDetecte) {
+                    const signe = result.ecartFin >= 0 ? '+' : '';
+                    demanderJustificationEcart(
+                        '⚠️ Écart au FIN détecté\n\nSystème attendait : ' + formatNum(result.soldeTheorique) + ' #\nDéclaré : ' + formatNum(val) + ' #\nÉcart : ' + signe + formatNum(result.ecartFin) + ' #',
+                        async function(justification) {
+                            await apiPost({ action: 'saveEcartAvecJustification', codeCommerce: currentMerchant.code, pin: currentUser.pin, moment: 'fin', soldeTheorique: result.soldeTheorique, valeurPhysique: val, justification });
+                        }
+                    );
+                }
+            }
+            mgrCalculateDiff();
+        }
+
+        function demanderJustificationEcart(message, onConfirm) {
+            // Créer modale justification
+            const existing = document.getElementById('justifModal');
+            if (existing) existing.remove();
+            
+            const modal = document.createElement('div');
+            modal.id = 'justifModal';
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
+            modal.innerHTML = `
+                <div style="background:white;border-radius:1rem;padding:1.5rem;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+                    <p style="color:#dc2626;font-weight:700;font-size:1rem;margin-bottom:0.75rem">⚠️ Écart détecté</p>
+                    <p style="color:#374151;font-size:0.875rem;white-space:pre-line;margin-bottom:1rem">${message}</p>
+                    <p style="color:#374151;font-size:0.875rem;font-weight:600;margin-bottom:0.5rem">Justification obligatoire :</p>
+                    <textarea id="justifTexte" placeholder="Expliquez l'écart..." style="width:100%;border:1px solid #d1d5db;border-radius:0.5rem;padding:0.5rem;font-size:0.875rem;min-height:80px;resize:vertical;box-sizing:border-box"></textarea>
+                    <p id="justifErreur" style="color:#dc2626;font-size:0.75rem;margin-top:0.25rem;display:none">La justification est obligatoire</p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:1rem">
+                        <button onclick="fermerJustifModal()" style="background:#6b7280;color:white;padding:0.5rem;border-radius:0.5rem;border:none;cursor:pointer;font-weight:600">Annuler</button>
+                        <button onclick="confirmerJustif()" style="background:#dc2626;color:white;padding:0.5rem;border-radius:0.5rem;border:none;cursor:pointer;font-weight:600">✓ Confirmer</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(modal);
+            
+            window._justifCallback = onConfirm;
+            setTimeout(() => document.getElementById('justifTexte')?.focus(), 100);
+        }
+
+        function fermerJustifModal() {
+            const modal = document.getElementById('justifModal');
+            if (modal) modal.remove();
+            window._justifCallback = null;
+        }
+
+        async function confirmerJustif() {
+            const texte = document.getElementById('justifTexte')?.value?.trim();
+            if (!texte) {
+                document.getElementById('justifErreur').style.display = 'block';
+                return;
+            }
+            const callback = window._justifCallback;
+            fermerJustifModal();
+            if (callback) await callback(texte);
+        }
+
+        var periodeEcartsActuelle = 'mois';
+
+        async function chargerEcarts(periode) {
+            periodeEcartsActuelle = periode || 'mois';
+            // Mettre à jour style boutons
+            ['mois','annee','tout'].forEach(p => {
+                const btn = document.getElementById('btnEcarts' + p.charAt(0).toUpperCase() + p.slice(1));
+                if (btn) btn.style.background = p === periodeEcartsActuelle ? '#2563eb' : '#e5e7eb';
+                if (btn) btn.style.color = p === periodeEcartsActuelle ? 'white' : '#374151';
+            });
+            
+            const result = await apiGet('getEcarts', { code: currentMerchant.code, pin: currentUser.pin, periode: periodeEcartsActuelle });
+            const liste = document.getElementById('ecartsListe');
+            if (!result.success) { liste.innerHTML = '<p class="text-red-500 text-sm text-center">Erreur: ' + result.error + '</p>'; return; }
+            if (!result.ecarts || result.ecarts.length === 0) { liste.innerHTML = '<p class="text-gray-400 text-center text-sm p-4">Aucun écart sur cette période</p>'; return; }
+            
+            liste.innerHTML = result.ecarts.map(function(e) {
+                const signe = e.ecart >= 0 ? '+' : '';
+                const couleur = e.ecart === 0 ? '#6b7280' : (e.ecart > 0 ? '#16a34a' : '#dc2626');
+                const moment = e.moment === 'debut' ? '🌅 Début' : '🌇 Fin';
+                return '<div style="border:1px solid #e5e7eb;border-radius:0.5rem;padding:0.75rem;margin-bottom:0.5rem">'
+                    + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+                    + '<div><strong style="font-size:0.875rem">' + e.employe + '</strong> <span style="color:#6b7280;font-size:0.75rem">' + moment + ' — ' + e.date + '</span></div>'
+                    + '<strong style="color:' + couleur + ';font-size:0.875rem">' + signe + formatNum(e.ecart) + ' #</strong>'
+                    + '</div>'
+                    + '<div style="font-size:0.75rem;color:#6b7280;margin-top:0.25rem">Théorique : ' + formatNum(e.theorique) + ' # | Physique : ' + formatNum(e.physique) + ' #</div>'
+                    + (e.justification ? '<div style="font-size:0.75rem;color:#374151;margin-top:0.25rem;font-style:italic">💬 ' + e.justification + '</div>' : '')
+                    + '</div>';
+            }).join('');
+        }
+
+        async function exporterEcarts() {
+            const result = await apiGet('exportEcarts', { code: currentMerchant.code, pin: currentUser.pin, periode: periodeEcartsActuelle });
+            if (!result.success) return showAlert('Erreur export: ' + result.error);
+            if (!result.csv) return showAlert('Aucun écart à exporter');
+            
+            const blob = new Blob(['\uFEFF' + result.csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ecarts_' + currentMerchant.code + '_' + getTodayStr() + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showAlert('✅ Export téléchargé — ' + result.nbLignes + ' ligne(s)', 'success');
         }
 
         function showManagerTab(tab) {
@@ -1857,6 +1982,7 @@
             document.getElementById('mTab' + tab.charAt(0).toUpperCase() + tab.slice(1))?.classList.add('active');
             document.getElementById('mContent' + tab.charAt(0).toUpperCase() + tab.slice(1))?.classList.remove('hidden');
             if (tab === 'caisses') loadCaissesTab();
+            if (tab === 'historique') chargerEcarts(periodeEcartsActuelle);
             if (tab === 'qr') generateManagerQR();
             if (tab === 'parametres') loadParametres();
         }
