@@ -941,7 +941,7 @@
 
     <!-- ========== APPLICATION ========== -->
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbynvcMyMWT7pxU9Vo4ygwzcYkbobWxziYPJVsnIdx6HPPiGR_a3lygpqDbE9Bjgw3KE/exec;
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxwbRngSZ40OCLtaZBWrhKmjlQgGNm6-iTC2DPITqz5naALsNie13MOF4RiAP3kM2H2/exec';
         const QR_BASE_URL = 'https://espoyr.github.io/bons-espoyr/index.html';
         let currentUser = null, currentMerchant = null, ajustType = 'ajout';
         let timerInterval = null;
@@ -1595,6 +1595,7 @@
                     }
                 });
             }
+        }
 
         // === RESPONSABLE ===
         var mgrTotalC = 0;
@@ -1818,6 +1819,7 @@
                     showAlert('Erreur : ' + (result.error || 'Echec de la clôture'));
                 }
             });
+        }
 
         async function mgrSaveStock(type) {
             const val = parseNum(document.getElementById(type === 'debut' ? 'mgrStockDebut' : 'mgrStockFin').value);
