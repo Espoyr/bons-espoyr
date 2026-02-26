@@ -752,18 +752,22 @@
                     <h3 class="font-semibold text-gray-700 mb-4">🔄 Transfert</h3>
                     <div class="space-y-3">
                         <div>
-                            <label class="text-sm text-gray-600">Vers :</label>
+                            <label class="text-sm text-gray-600">Caisse :</label>
                             <select id="transfertVers" class="input-style" onchange="onTransfertVersChange()">
-                                <option value="">Sélectionner un destinataire</option>
+                                <option value="">Sélectionner une caisse</option>
                             </select>
                         </div>
                         <div id="transfertStatutDest" class="text-sm hidden"></div>
                         <div class="flex items-center gap-2">
-                            <input type="number" id="transfertMontant" step="0.5" lang="en" placeholder="Montant" class="input-style text-center text-xl font-bold" style="flex:1">
+                            <input type="number" id="transfertMontant" step="0.5" min="0" lang="en" placeholder="Montant" class="input-style text-center text-xl font-bold" style="flex:1">
                             <span class="font-bold text-xl">#</span>
                         </div>
                         <input type="text" id="transfertMotif" placeholder="Motif (optionnel)" class="input-style">
-                        <button onclick="submitTransfert()" id="btnTransfert" class="btn-primary">🔄 Transférer</button>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+                            <button onclick="submitTransfert('envoyer')" id="btnEnvoyer" class="btn-primary">🔄 Envoyer →</button>
+                            <button onclick="submitTransfert('reprendre')" id="btnReprendre" style="background:#7c3aed;color:white;padding:0.5rem;border-radius:0.5rem;font-weight:600;border:none;cursor:pointer">↩️ Reprendre ←</button>
+                        </div>
+                        <p id="transfertInfo" class="text-xs text-gray-400 text-center hidden"></p>
                     </div>
                 </div>
                 
@@ -937,7 +941,7 @@
 
     <!-- ========== APPLICATION ========== -->
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxwbRngSZ40OCLtaZBWrhKmjlQgGNm6-iTC2DPITqz5naALsNie13MOF4RiAP3kM2H2/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbynvcMyMWT7pxU9Vo4ygwzcYkbobWxziYPJVsnIdx6HPPiGR_a3lygpqDbE9Bjgw3KE/exec;
         const QR_BASE_URL = 'https://espoyr.github.io/bons-espoyr/index.html';
         let currentUser = null, currentMerchant = null, ajustType = 'ajout';
         let timerInterval = null;
@@ -2032,49 +2036,74 @@
         function onTransfertVersChange() {
             const destId = document.getElementById('transfertVers').value;
             const statutEl = document.getElementById('transfertStatutDest');
+            const infoEl = document.getElementById('transfertInfo');
+            const btnReprendre = document.getElementById('btnReprendre');
+            
             if (!destId) {
                 statutEl.classList.add('hidden');
+                infoEl.classList.add('hidden');
                 return;
             }
             const caisse = currentCaisses.find(c => c.id === destId);
             if (caisse) {
                 if (caisse.statut === 'fermee') {
-                    statutEl.innerHTML = '<span style="color:#16a34a">✓ Caisse fermée - Transfert direct</span>';
-                } else if (caisse.statut === 'stock_fin_saisi') {
-                    statutEl.innerHTML = '<span style="color:#dc2626">⚠️ Stock fin déjà saisi - Transfert bloqué</span>';
+                    statutEl.innerHTML = '<span style="color:#16a34a">✓ Caisse fermée — Envoi direct | Reprise directe</span>';
+                    btnReprendre.disabled = false;
+                    btnReprendre.style.opacity = '1';
+                    infoEl.classList.add('hidden');
                 } else {
-                    statutEl.innerHTML = '<span style="color:#f59e0b">⏳ Caisse ouverte - Attendra validation</span>';
+                    statutEl.innerHTML = '<span style="color:#f59e0b">⏳ Caisse ouverte — Envoi : attendra validation</span>';
+                    btnReprendre.disabled = true;
+                    btnReprendre.style.opacity = '0.4';
+                    infoEl.textContent = '↩️ Reprise impossible : la caisse est ouverte.';
+                    infoEl.classList.remove('hidden');
                 }
                 statutEl.classList.remove('hidden');
             }
         }
 
-        async function submitTransfert() {
-            const versId = document.getElementById('transfertVers').value;
+        async function submitTransfert(sens) {
+            const caisseId = document.getElementById('transfertVers').value;
             let montant = parseNum(document.getElementById('transfertMontant').value);
             const motif = document.getElementById('transfertMotif').value;
             
-            if (!versId) return showAlert('Sélectionnez un destinataire');
-            if (isNaN(montant) || montant === 0) return showAlert('Montant invalide');
+            if (!caisseId) return showAlert('Sélectionnez une caisse');
+            if (isNaN(montant) || montant <= 0) return showAlert('Montant invalide — entrez un nombre positif');
             
-            // Arrondir à 0.5
             montant = Math.round(montant * 2) / 2;
-            
-            const caisse = currentCaisses.find(c => c.id === versId);
+            const caisse = currentCaisses.find(c => c.id === caisseId);
             
             let result;
-            if (caisse && caisse.statut === 'fermee') {
-                result = await apiPost({ action: 'transfertDirect', codeCommerce: currentMerchant.code, pin: currentUser.pin, versId, montant, motif });
+            
+            if (sens === 'reprendre') {
+                // Reprise : caissier → responsable, direct si caisse fermée
+                if (!caisse || caisse.statut !== 'fermee') {
+                    return showAlert('↩️ Reprise impossible : la caisse doit être fermée.', 'warning');
+                }
+                result = await apiPost({ 
+                    action: 'reprendreDepuisCaissier', 
+                    codeCommerce: currentMerchant.code, 
+                    pin: currentUser.pin, 
+                    depuisId: caisseId, 
+                    montant, 
+                    motif: motif || 'Reprise responsable' 
+                });
             } else {
-                result = await apiPost({ action: 'proposerTransfert', codeCommerce: currentMerchant.code, pin: currentUser.pin, versId, montant, motif });
+                // Envoi : responsable → caissier
+                if (caisse && caisse.statut === 'fermee') {
+                    result = await apiPost({ action: 'transfertDirect', codeCommerce: currentMerchant.code, pin: currentUser.pin, versId: caisseId, montant, motif });
+                } else {
+                    result = await apiPost({ action: 'proposerTransfert', codeCommerce: currentMerchant.code, pin: currentUser.pin, versId: caisseId, montant, motif });
+                }
             }
             
             if (result.success) {
-                showAlert(result.message || 'Transfert effectué !');
+                showAlert(result.message || (sens === 'reprendre' ? '↩️ Reprise effectuée !' : '🔄 Transfert effectué !'));
                 document.getElementById('transfertMontant').value = '';
                 document.getElementById('transfertMotif').value = '';
                 document.getElementById('transfertVers').value = '';
                 document.getElementById('transfertStatutDest').classList.add('hidden');
+                document.getElementById('transfertInfo').classList.add('hidden');
                 loadCaissesTab();
                 loadManagerDashboard();
             } else {
