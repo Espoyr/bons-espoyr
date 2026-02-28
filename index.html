@@ -120,6 +120,224 @@
     .overflow-y-auto { overflow-y: auto; }
     .max-h-48 { max-height: 12rem; }
 
+    /* ========== ZONE ENCODAGE PAIEMENT 571 ========== */
+    .paiement-zone {
+        background: #1a1a2e;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 2px solid #2d2d4e;
+        font-family: "SF Mono", "Consolas", monospace;
+    }
+    .paiement-zone .pz-title {
+        color: #f0c040;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        border-bottom: 1px solid #2d2d4e;
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .paiement-zone .pz-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .paiement-zone .pz-label {
+        color: #a0a0b0;
+        font-size: 0.78rem;
+        flex: 1;
+        min-width: 0;
+    }
+    .paiement-zone .pz-input-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .pz-input-red {
+        background: #2a1a1a;
+        border: 1.5px solid #e53e3e;
+        border-radius: 0.375rem;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 700;
+        text-align: right;
+        padding: 0.3rem 0.5rem;
+        width: 7rem;
+        font-family: inherit;
+    }
+    .pz-input-red:focus { outline: none; border-color: #fc8181; box-shadow: 0 0 0 2px rgba(229,62,62,0.2); }
+    .pz-input-red::placeholder { color: #6b4040; }
+    .pz-value-green {
+        color: #48bb78;
+        font-size: 1rem;
+        font-weight: 700;
+        text-align: right;
+        min-width: 7rem;
+        padding: 0.3rem 0.5rem;
+        background: #1a2e1a;
+        border: 1.5px solid #2d4e2d;
+        border-radius: 0.375rem;
+    }
+    .pz-unit { color: #a0a0b0; font-size: 0.85rem; flex-shrink: 0; width: 1.2rem; }
+    .pz-separator {
+        border: none;
+        border-top: 1px solid #2d2d4e;
+        margin: 0.6rem 0;
+    }
+    .pz-double-separator {
+        border: none;
+        border-top: 3px double #a0a0b0;
+        margin: 0.6rem 0;
+    }
+    .pz-section-label {
+        color: #6b6b8a;
+        font-size: 0.7rem;
+        text-align: center;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin: 0.4rem 0;
+    }
+    .pz-bancontact-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.5rem;
+        background: #1a1a3a;
+        border: 1px solid #3a3a6a;
+        border-radius: 0.375rem;
+        margin-bottom: 0.5rem;
+    }
+    .pz-bancontact-label { color: #8080c0; font-size: 0.78rem; flex: 1; }
+    .pz-bancontact-value { color: #8080ff; font-size: 1rem; font-weight: 700; }
+    .pz-monnaie-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background: #1a2a1a;
+        border: 2px solid #48bb78;
+        border-radius: 0.375rem;
+        margin: 0.5rem 0;
+    }
+    .pz-monnaie-label { color: #a0c0a0; font-size: 0.78rem; flex: 1; }
+    .pz-monnaie-value { color: #48bb78; font-size: 1.1rem; font-weight: 700; }
+    .pz-impact-block {
+        background: #0f1a0f;
+        border: 1px solid #2d4e2d;
+        border-radius: 0.375rem;
+        padding: 0.5rem 0.75rem;
+        margin-top: 0.5rem;
+    }
+    .pz-impact-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.15rem 0;
+    }
+    .pz-impact-label { color: #6b8a6b; font-size: 0.78rem; }
+    .pz-impact-value { color: #48bb78; font-size: 0.9rem; font-weight: 700; }
+    .pz-impact-value.negative { color: #fc8181; }
+    .pz-btn-valider {
+        width: 100%;
+        background: linear-gradient(135deg, #065f46, #059669);
+        color: white;
+        font-weight: 700;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        margin-top: 0.75rem;
+        letter-spacing: 0.05em;
+        transition: all 0.2s;
+    }
+    .pz-btn-valider:hover { opacity: 0.9; transform: translateY(-1px); }
+    .pz-btn-valider:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* ========== BLOC TRANSACTIONS DU JOUR ========== */
+    .tx-bloc {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 10px 40px -10px rgba(0,0,0,0.15);
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    .tx-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.6rem 0.75rem;
+        border-radius: 0.5rem;
+        border: 1px solid #e5e7eb;
+        margin-bottom: 0.4rem;
+        cursor: pointer;
+        transition: background 0.15s;
+        background: #f9fafb;
+    }
+    .tx-item:hover { background: #f0f4ff; border-color: #93c5fd; }
+    .tx-item.annule {
+        background: #f3f4f6;
+        border-color: #e5e7eb;
+        opacity: 0.6;
+    }
+    .tx-item.annule .tx-desc { text-decoration: line-through; color: #9ca3af; }
+    .tx-item.annule .tx-montant { text-decoration: line-through; color: #9ca3af; }
+    .tx-time { font-size: 0.7rem; color: #9ca3af; font-family: monospace; flex-shrink: 0; width: 3rem; }
+    .tx-desc { font-size: 0.8rem; color: #374151; flex: 1; padding: 0 0.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tx-montant { font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
+    .tx-montant.positif { color: #16a34a; }
+    .tx-montant.negatif { color: #dc2626; }
+    .tx-montant.neutre { color: #6b7280; }
+    .tx-stock-cumul { font-size: 0.7rem; color: #6b7280; flex-shrink: 0; width: 3.5rem; text-align: right; }
+
+    /* ========== MODAL DÉTAIL TRANSACTION ========== */
+    .tx-detail-modal {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 9000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .tx-detail-content {
+        background: #1a1a2e;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        width: 100%;
+        max-width: 380px;
+        font-family: "SF Mono", "Consolas", monospace;
+        border: 1px solid #2d2d4e;
+    }
+    .tx-detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.3rem 0;
+        border-bottom: 1px solid #2d2d4e;
+        font-size: 0.82rem;
+    }
+    .tx-detail-key { color: #8080a0; }
+    .tx-detail-val { color: #e0e0f0; font-weight: 600; }
+
+    /* ========== MODAL EXPORT ========== */
+    .export-modal {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 9000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    /* Supprimer les flèches des champs numériques */
+    input[type=number] { -moz-appearance: textfield; }
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
     .fixed { position: fixed; }
     .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
     .z-50 { z-index: 50; }
@@ -559,8 +777,115 @@
                 </div>
             </div>
             
-            <!-- Retour de bons au responsable (visible si caisse ouverte) -->
-            <div id="cashierRetourSection" class="bg-white rounded-2xl card-shadow p-6 mb-4 hidden">
+            <!-- ========== ZONE ENCODAGE PAIEMENT 571 ========== -->
+            <div id="paiementZone" class="hidden paiement-zone mb-4">
+                <div class="pz-title">
+                    <span>▪</span> 571 — ENCODAGE PAIEMENT
+                </div>
+
+                <!-- Description -->
+                <div class="pz-row">
+                    <span class="pz-label">Description</span>
+                    <div class="pz-input-wrap">
+                        
+                        <input type="text" id="pzDescription" class="pz-input-red" style="width:11rem" placeholder="Pain, légumes...">
+                    </div>
+                </div>
+
+                <!-- Prix vente -->
+                <div class="pz-row">
+                    <span class="pz-label">Prix vente</span>
+                    <div class="pz-input-wrap">
+                        
+                        <input type="number" id="pzPrix" class="pz-input-red" step="0.01" min="0" placeholder="0,00" oninput="pzCalculer()">
+                        <span class="pz-unit">€</span>
+                    </div>
+                </div>
+
+                <hr class="pz-separator">
+
+                <!-- Bons # à rendre -->
+                <div class="pz-row">
+                    <span class="pz-label">Bons # à rendre</span>
+                    <div class="pz-input-wrap">
+                        
+                        <input type="number" id="pzHashRendu" class="pz-input-red" step="0.5" min="0" placeholder="0,0" oninput="pzCalculer()">
+                        <span class="pz-unit">#</span>
+                    </div>
+                </div>
+
+                <!-- # reçus du client -->
+                <div class="pz-row">
+                    <span class="pz-label"># reçus du client</span>
+                    <div class="pz-input-wrap">
+                        
+                        <input type="number" id="pzHashRecu" class="pz-input-red" step="0.5" min="0" placeholder="0,0" oninput="pzCalculer()">
+                        <span class="pz-unit">#</span>
+                    </div>
+                </div>
+
+                <!-- € reçus cash -->
+                <div class="pz-row">
+                    <span class="pz-label">€ reçus cash</span>
+                    <div class="pz-input-wrap">
+                        
+                        <input type="number" id="pzEuroRecu" class="pz-input-red" step="0.01" min="0" placeholder="vierge = Bancontact" oninput="pzCalculer()">
+                        <span class="pz-unit">€</span>
+                    </div>
+                </div>
+
+                <!-- Bancontact (affiché si € reçus vierge) -->
+                <div id="pzBancontactRow" class="pz-bancontact-row">
+                    <span class="pz-bancontact-label">💳 Bancontact</span>
+                    
+                    <span id="pzBancontactVal" class="pz-bancontact-value">0,00 €</span>
+                </div>
+
+                <!-- Ligne double — Monnaie € à rendre -->
+                <hr class="pz-double-separator">
+                <div class="pz-monnaie-row">
+                    <span class="pz-monnaie-label">💶 Monnaie € à rendre</span>
+                    
+                    <span id="pzMonnaieEuro" class="pz-monnaie-value">0,00 €</span>
+                </div>
+                <hr class="pz-double-separator">
+
+                <!-- Impact caisse -->
+                <div class="pz-section-label">— IMPACT CAISSE —</div>
+                <div class="pz-impact-block">
+                    <div class="pz-impact-row">
+                        <span class="pz-impact-label">Stock # avant</span>
+                        <span id="pzStockAvant" class="pz-impact-value">0,0 #</span>
+                    </div>
+                    <div class="pz-impact-row">
+                        <span class="pz-impact-label">Mouvement #</span>
+                        <span id="pzMouvement" class="pz-impact-value">0,0 #</span>
+                    </div>
+                    <div class="pz-impact-row" style="border-top:1px solid #2d4e2d;margin-top:0.25rem;padding-top:0.25rem">
+                        <span class="pz-impact-label" style="color:#48bb78;font-weight:700">Stock # après</span>
+                        <span id="pzStockApres" class="pz-impact-value" style="font-size:1rem">0,0 #</span>
+                    </div>
+                </div>
+
+                <button id="pzBtnValider" class="pz-btn-valider" onclick="pzValider()">✅ VALIDER</button>
+            </div>
+
+            <!-- ========== BLOC TRANSACTIONS DU JOUR ========== -->
+            <div id="txBloc" class="hidden tx-bloc mb-4">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+                    <h3 style="font-weight:600;color:#374151;font-size:0.95rem">📋 Transactions du jour</h3>
+                    <div style="display:flex;align-items:center;gap:0.5rem">
+                        <span id="txStockReel" style="font-size:0.85rem;font-weight:700;color:#059669;background:#f0fdf4;padding:0.25rem 0.6rem;border-radius:999px;border:1px solid #86efac">
+                            Stock # réel : 0,0
+                        </span>
+                        <button onclick="showExportModal()" title="Exporter" style="background:#1e3a5f;color:white;padding:0.3rem 0.6rem;border-radius:0.5rem;font-size:0.8rem;border:none;cursor:pointer">📧 Export</button>
+                    </div>
+                </div>
+                <div id="txListe" style="max-height:16rem;overflow-y:auto"></div>
+                <div id="txVide" style="text-align:center;color:#9ca3af;padding:1rem;font-size:0.875rem">Aucune transaction encodée</div>
+            </div>
+
+            <!-- Retour de bons au responsable (visible si caisse ouverte) -->            <div id="cashierRetourSection" class="bg-white rounded-2xl card-shadow p-6 mb-4 hidden">
                 <h3 class="font-semibold text-gray-700 mb-4 text-center">🔄 Retour de bons au responsable</h3>
                 <div style="display:flex;gap:0.5rem;align-items:center">
                     <input type="number" id="retourMontant" step="0.5" min="0" lang="en" class="input-style" style="flex:1;padding:0.75rem;font-size:1.25rem;text-align:center" placeholder="Montant">
@@ -956,7 +1281,7 @@
 
     <!-- ========== APPLICATION ========== -->
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxEUxmKHg2GdWOsYowCpyzZuqpiyRXb7fNWKpZh1D9GDkDtVq5rvOtH93hvUbGTwUVV/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbz6gg0NhIqhWN2KqECRU4VR0NUD8pAKAXdQobenrJMHsOQAjq8_XyHJYwnIUI4koIE/exec';
         const QR_BASE_URL = 'https://espoyr.github.io/bons-espoyr/index.html';
         let currentUser = null, currentMerchant = null, ajustType = 'ajout';
         let timerInterval = null;
@@ -1268,6 +1593,9 @@
             // Réinitialiser
             cashierTotalC = 0;
             cashierTotalF = 0;
+            pzTransactions = [];
+            document.getElementById('paiementZone').classList.add('hidden');
+            document.getElementById('txBloc').classList.add('hidden');
             
             document.getElementById('stockDebut').value = '';
             document.getElementById('stockDebut').disabled = false;
@@ -1352,7 +1680,7 @@
                         document.getElementById('cashierHSection').classList.remove('hidden');
                         
                         cashierSoldeSysteme = parseFloat(result.journee.stockDebut);
-                        
+
                         // Afficher section retour de bons (caisse ouverte) seulement si pas caisse unique
                         if (!result.caisseUnique) {
                             document.getElementById('cashierRetourSection').classList.remove('hidden');
@@ -1362,6 +1690,8 @@
                     }
                     
                     if (result.journee.stockFin !== null && result.journee.stockFin !== '') {
+                        // Journée déjà clôturée — cacher zone paiement, afficher stock fin
+                        pzHideZone();
                         document.getElementById('stockFin').value = result.journee.stockFin;
                         document.getElementById('stockFin').disabled = true;
                         document.getElementById('btnStockFin').classList.add('hidden');
@@ -1375,6 +1705,11 @@
                         const G = parseFloat(result.journee.stockFin) || 0;
                         const H = G - X - cashierTotalC + cashierTotalF;
                         document.getElementById('cashierDiff').textContent = (H >= 0 ? '+' : '') + formatNum(H) + ' #';
+                    } else if (result.journee.stockDebut !== null && result.journee.stockDebut !== '') {
+                        // Journée ouverte (stock début OK, pas encore clôturée) — afficher zone paiement
+                        pzTransactions = [];
+                        pzShowZone();
+                        pzChargerTransactionsDuJour();
                     }
                 }
             }
@@ -1453,6 +1788,11 @@
                 
                 cashierSoldeSysteme = val;
                 document.getElementById('cashierSoldeSysteme').textContent = formatNum(val) + ' #';
+
+                // Afficher zone paiement 571
+                pzTransactions = [];
+                pzShowZone();
+                pzChargerTransactionsDuJour();
                 
                 if (ecart !== 0) {
                     const msgEcart = result.caisseUnique 
@@ -1540,6 +1880,9 @@
                 document.getElementById('stockFinValide').classList.remove('hidden');
                 document.getElementById('stockFinValideVal').textContent = formatNum(G);
                 document.getElementById('btnStockFin').classList.add('hidden');
+                
+                // Cacher zone paiement — journée clôturée
+                pzHideZone();
                 
                 let msgFinal = '✅ Journée clôturée !\n\nStock # final : ' + formatNum(G) + '#\nDifférence caisse € (H) : ' + (H >= 0 ? '+' : '') + formatNum(H) + '#';
                 if (H > 0) {
@@ -2534,9 +2877,370 @@
             } catch(err) { showAlert('Erreur: ' + err.message); }
         }
 
-        function logout() { 
-            currentUser = null; 
-            currentMerchant = null; 
+        // ========== ZONE PAIEMENT 571 ==========
+
+        // Stock # courant en caisse (calculé dynamiquement)
+        var pzTransactions = []; // tableau local des transactions du jour
+
+        function pzGetStockReel() {
+            var debut = parseNum(document.getElementById('stockDebut').value) || 0;
+            var total = debut;
+            pzTransactions.forEach(function(tx) {
+                if (tx.statut !== 'annule') total += tx.mouvement;
+            });
+            return Math.round(total * 100) / 100;
+        }
+
+        function pzCalculer() {
+            var prix  = parseNum(document.getElementById('pzPrix').value) || 0;
+            var hRecu = parseNum(document.getElementById('pzHashRecu').value) || 0;
+            var hRend = parseNum(document.getElementById('pzHashRendu').value) || 0;
+            var eRecu = document.getElementById('pzEuroRecu').value.trim();
+            var eRecuVal = eRecu === '' ? null : (parseNum(eRecu) || 0);
+
+            // Bancontact = Prix + # rendus − # reçus
+            var resteEuro = Math.round((prix + hRend - hRecu) * 100) / 100;
+
+            // Bancontact vs Cash
+            var bancontactRow = document.getElementById('pzBancontactRow');
+            var bancontactVal = document.getElementById('pzBancontactVal');
+            var monnaieEl = document.getElementById('pzMonnaieEuro');
+
+            if (eRecuVal === null) {
+                // Mode bancontact : afficher bancontact, monnaie = 0
+                bancontactRow.style.display = 'flex';
+                bancontactVal.textContent = formatNum2(resteEuro) + ' €';
+                monnaieEl.textContent = '0,00 €';
+            } else {
+                // Mode cash : cacher bancontact, calculer monnaie
+                bancontactRow.style.display = 'none';
+                var monnaie = Math.round((eRecuVal - resteEuro) * 100) / 100;
+                monnaieEl.textContent = formatNum2(Math.max(0, monnaie)) + ' €';
+            }
+
+            // Impact caisse
+            var mouvement = Math.round((hRecu - hRend) * 100) / 100;
+            var stockAvant = pzGetStockReel();
+            var stockApres = Math.round((stockAvant + mouvement) * 100) / 100;
+
+            document.getElementById('pzStockAvant').textContent = formatNum(stockAvant) + ' #';
+            var mvtEl = document.getElementById('pzMouvement');
+            mvtEl.textContent = (mouvement >= 0 ? '+' : '') + formatNum(mouvement) + ' #';
+            mvtEl.className = 'pz-impact-value' + (mouvement > 0 ? '' : mouvement < 0 ? ' negative' : '');
+            document.getElementById('pzStockApres').textContent = formatNum(stockApres) + ' #';
+        }
+
+        function formatNum2(n) {
+            return parseFloat(n || 0).toFixed(2).replace('.', ',');
+        }
+
+        function pzValider() {
+            var prix  = parseNum(document.getElementById('pzPrix').value) || 0;
+            var desc  = document.getElementById('pzDescription').value.trim();
+            var hRecu = parseNum(document.getElementById('pzHashRecu').value) || 0;
+            var hRend = parseNum(document.getElementById('pzHashRendu').value) || 0;
+            var eRecu = document.getElementById('pzEuroRecu').value.trim();
+            var eRecuVal = eRecu === '' ? null : (parseNum(eRecu) || 0);
+
+            if (prix <= 0) return showAlert('⚠️ Veuillez saisir un prix de vente');
+            if (hRecu === 0 && hRend === 0) return showAlert('⚠️ Au moins un mouvement # est requis');
+
+            var resteEuro = Math.round((prix + hRend - hRecu) * 100) / 100;
+            var mouvement = Math.round((hRecu - hRend) * 100) / 100;
+            var stockAvant = pzGetStockReel();
+            var stockApres = Math.round((stockAvant + mouvement) * 100) / 100;
+
+            var bancontact = 0;
+            var cashRecu = 0;
+            var monnaieRendue = 0;
+
+            if (eRecuVal === null) {
+                // Bancontact
+                bancontact = Math.round(resteEuro * 100) / 100;
+            } else {
+                // Cash
+                cashRecu = eRecuVal;
+                monnaieRendue = Math.round(Math.max(0, eRecuVal - resteEuro) * 100) / 100;
+            }
+
+            var now = new Date();
+            var heure = now.toTimeString().substring(0, 8);
+            var tx = {
+                id: 'TX-' + Date.now(),
+                date: getTodayStr(),
+                heure: heure,
+                code571: '571',
+                description: desc || '—',
+                prixVente: prix,
+                hashRecu: hRecu,
+                hashRendu: hRend,
+                mouvement: mouvement,
+                euroCash: cashRecu,
+                euroBancontact: bancontact,
+                monnaieRendue: monnaieRendue,
+                stockAvant: stockAvant,
+                stockApres: stockApres,
+                statut: 'actif',
+                commentaireAnnulation: '',
+                caissier: currentUser ? currentUser.nom : '',
+                codeCommerce: currentMerchant ? currentMerchant.code : ''
+            };
+
+            pzTransactions.push(tx);
+            pzRenderTransactions();
+            pzViderChamps();
+
+            // Sauvegarder en backend
+            pzSauvegarderTransaction(tx);
+        }
+
+        async function pzSauvegarderTransaction(tx) {
+            try {
+                var result = await apiPost({
+                    action: 'saveTransaction571',
+                    codeCommerce: tx.codeCommerce,
+                    pin: currentUser.pin,
+                    transaction: tx
+                });
+                if (!result.success) {
+                    console.warn('Erreur sauvegarde transaction:', result.error);
+                }
+            } catch(e) {
+                console.warn('Erreur réseau transaction:', e.message);
+            }
+        }
+
+        function pzViderChamps() {
+            document.getElementById('pzDescription').value = '';
+            document.getElementById('pzPrix').value = '';
+            document.getElementById('pzHashRecu').value = '';
+            document.getElementById('pzHashRendu').value = '';
+            document.getElementById('pzEuroRecu').value = '';
+            // Recalculer avec champs vides
+            document.getElementById('pzBancontactRow').style.display = 'flex';
+            document.getElementById('pzBancontactVal').textContent = '0,00 €';
+            document.getElementById('pzMonnaieEuro').textContent = '0,00 €';
+            document.getElementById('pzStockAvant').textContent = formatNum(pzGetStockReel()) + ' #';
+            document.getElementById('pzMouvement').textContent = '0,0 #';
+            document.getElementById('pzStockApres').textContent = formatNum(pzGetStockReel()) + ' #';
+        }
+
+        function pzRenderTransactions() {
+            var liste = document.getElementById('txListe');
+            var vide = document.getElementById('txVide');
+            var actives = pzTransactions.filter(function(t) { return t.statut !== 'annule'; });
+
+            if (pzTransactions.length === 0) {
+                vide.style.display = 'block';
+                liste.innerHTML = '';
+            } else {
+                vide.style.display = 'none';
+                var html = '';
+                pzTransactions.slice().reverse().forEach(function(tx) {
+                    var annule = tx.statut === 'annule';
+                    var mvtLabel = tx.mouvement >= 0 ? ('+' + formatNum(tx.mouvement) + ' #') : (formatNum(tx.mouvement) + ' #');
+                    var mvtClass = tx.mouvement > 0 ? 'positif' : tx.mouvement < 0 ? 'negatif' : 'neutre';
+                    html += '<div class="tx-item' + (annule ? ' annule' : '') + '" onclick="showTxDetail(\'' + tx.id + '\')">' +
+                        '<span class="tx-time">' + tx.heure.substring(0,5) + '</span>' +
+                        '<span class="tx-desc">' + escHtml(tx.description) + '</span>' +
+                        '<span class="tx-montant ' + (annule ? '' : mvtClass) + '">' + mvtLabel + '</span>' +
+                        '<span class="tx-stock-cumul">' + formatNum(tx.stockApres) + '#</span>' +
+                        '</div>';
+                });
+                liste.innerHTML = html;
+            }
+
+            // Mettre à jour le stock réel affiché
+            var stockReel = pzGetStockReel();
+            document.getElementById('txStockReel').textContent = 'Stock # réel : ' + formatNum(stockReel);
+
+            // Mettre à jour impact caisse zone paiement
+            document.getElementById('pzStockAvant').textContent = formatNum(stockReel) + ' #';
+            document.getElementById('pzStockApres').textContent = formatNum(stockReel) + ' #';
+        }
+
+        function escHtml(s) {
+            return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // Afficher/cacher zone paiement après validation stock début
+        function pzShowZone() {
+            document.getElementById('paiementZone').classList.remove('hidden');
+            document.getElementById('txBloc').classList.remove('hidden');
+            pzRenderTransactions();
+        }
+        function pzHideZone() {
+            document.getElementById('paiementZone').classList.add('hidden');
+            // Le bloc tx reste visible pour consultation
+        }
+
+        // ========== DÉTAIL TRANSACTION ==========
+        var pzTxCourante = null;
+
+        function showTxDetail(id) {
+            var tx = pzTransactions.find(function(t) { return t.id === id; });
+            if (!tx) return;
+            pzTxCourante = tx;
+
+            var rows = [
+                ['Code', tx.code571],
+                ['Date', tx.date],
+                ['Heure', tx.heure],
+                ['Description', tx.description],
+                ['Prix vente', formatNum2(tx.prixVente) + ' €'],
+                ['# reçus client', formatNum(tx.hashRecu) + ' #'],
+                ['# rendus client', formatNum(tx.hashRendu) + ' #'],
+                ['Mouvement #', (tx.mouvement >= 0 ? '+' : '') + formatNum(tx.mouvement) + ' #'],
+                ['€ cash reçu', formatNum2(tx.euroCash) + ' €'],
+                ['€ bancontact', formatNum2(tx.euroBancontact) + ' €'],
+                ['Monnaie € rendue', formatNum2(tx.monnaieRendue) + ' €'],
+                ['Stock # avant', formatNum(tx.stockAvant) + ' #'],
+                ['Stock # après', formatNum(tx.stockApres) + ' #'],
+                ['Statut', tx.statut.toUpperCase()],
+            ];
+
+            var html = '';
+            rows.forEach(function(r) {
+                html += '<div class="tx-detail-row"><span class="tx-detail-key">' + r[0] + '</span><span class="tx-detail-val">' + escHtml(String(r[1])) + '</span></div>';
+            });
+            document.getElementById('txDetailRows').innerHTML = html;
+
+            var annuleInfo = document.getElementById('txDetailAnnuleInfo');
+            var btnAnnuler = document.getElementById('txBtnAnnuler');
+            if (tx.statut === 'annule') {
+                annuleInfo.classList.remove('hidden');
+                annuleInfo.textContent = '🚫 ANNULÉ — ' + (tx.commentaireAnnulation || 'sans commentaire');
+                btnAnnuler.style.display = 'none';
+            } else {
+                annuleInfo.classList.add('hidden');
+                btnAnnuler.style.display = '';
+            }
+
+            var modal = document.getElementById('txDetailModal');
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+
+        function closeTxDetail() {
+            var modal = document.getElementById('txDetailModal');
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+            pzTxCourante = null;
+        }
+
+        function demanderAnnulationTx() {
+            if (!pzTxCourante) return;
+            // Première confirmation
+            showConfirm('⚠️ Annuler cette transaction ?\n\n' + pzTxCourante.description + '\n' + (pzTxCourante.mouvement >= 0 ? '+' : '') + formatNum(pzTxCourante.mouvement) + ' #\n\nCette action est irréversible.\nLa transaction restera visible en barré.', function() {
+                // Deuxième confirmation + commentaire
+                demanderCommentaireAnnulation();
+            });
+        }
+
+        function demanderCommentaireAnnulation() {
+            var existing = document.getElementById('annulCommentModal');
+            if (existing) existing.remove();
+            var modal = document.createElement('div');
+            modal.id = 'annulCommentModal';
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem';
+            modal.innerHTML = '<div style="background:#1a1a2e;border-radius:1rem;padding:1.5rem;max-width:380px;width:100%;border:1px solid #7f1d1d">' +
+                '<p style="color:#fca5a5;font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">⚠️ CONFIRMATION DÉFINITIVE</p>' +
+                '<p style="color:#e0e0f0;font-size:0.85rem;margin-bottom:1rem">Commentaire obligatoire pour l\'annulation :</p>' +
+                '<textarea id="annulCommentTexte" placeholder="Raison de l\'annulation..." style="width:100%;background:#2a1a1a;border:1px solid #7f1d1d;border-radius:0.5rem;padding:0.5rem;color:#e0e0f0;font-size:0.85rem;min-height:70px;resize:vertical;box-sizing:border-box"></textarea>' +
+                '<p id="annulCommentErreur" style="color:#fc8181;font-size:0.75rem;margin-top:0.25rem;display:none">Le commentaire est obligatoire</p>' +
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:1rem">' +
+                '<button onclick="document.getElementById(\'annulCommentModal\').remove()" style="background:#2d2d4e;color:#a0a0b0;padding:0.6rem;border-radius:0.5rem;border:none;cursor:pointer;font-weight:600">Annuler</button>' +
+                '<button onclick="confirmerAnnulationTx()" style="background:#7f1d1d;color:#fca5a5;padding:0.6rem;border-radius:0.5rem;border:none;cursor:pointer;font-weight:600">✓ Confirmer</button>' +
+                '</div></div>';
+            document.body.appendChild(modal);
+        }
+
+        async function confirmerAnnulationTx() {
+            var commentaire = document.getElementById('annulCommentTexte').value.trim();
+            if (!commentaire) {
+                document.getElementById('annulCommentErreur').style.display = 'block';
+                return;
+            }
+            document.getElementById('annulCommentModal').remove();
+
+            if (!pzTxCourante) return;
+            pzTxCourante.statut = 'annule';
+            pzTxCourante.commentaireAnnulation = commentaire;
+
+            // Sauvegarder annulation en backend
+            try {
+                await apiPost({
+                    action: 'cancelTransaction571',
+                    codeCommerce: currentMerchant.code,
+                    pin: currentUser.pin,
+                    transactionId: pzTxCourante.id,
+                    commentaire: commentaire
+                });
+            } catch(e) { console.warn('Erreur annulation backend:', e.message); }
+
+            pzRenderTransactions();
+            closeTxDetail();
+            showAlert('✅ Transaction annulée et conservée en archive');
+        }
+
+        // ========== EXPORT MODAL ==========
+        function showExportModal() {
+            var today = getTodayStr();
+            document.getElementById('exportDateDebut').value = today;
+            document.getElementById('exportDateFin').value = today;
+            var modal = document.getElementById('exportModal');
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+        function closeExportModal() {
+            var modal = document.getElementById('exportModal');
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+        async function lancerExport(mode) {
+            var dateDebut = document.getElementById('exportDateDebut').value;
+            var dateFin = document.getElementById('exportDateFin').value;
+            if (!dateDebut || !dateFin) return showAlert('Veuillez saisir une période');
+            if (dateDebut > dateFin) return showAlert('La date début doit être avant la date fin');
+            closeExportModal();
+            var result = await apiPost({
+                action: 'exportTransactions571',
+                codeCommerce: currentMerchant.code,
+                pin: currentUser.pin,
+                dateDebut: dateDebut,
+                dateFin: dateFin,
+                mode: mode
+            });
+            if (result.success) {
+                showAlert('✅ Export lancé !\n\n' + (result.message || 'Le fichier vous a été envoyé'));
+            } else {
+                showAlert('Erreur export : ' + (result.error || 'Échec'));
+            }
+        }
+
+        // ========== CHARGEMENT TRANSACTIONS AU LOGIN ==========
+        async function pzChargerTransactionsDuJour() {
+            if (!currentUser || !currentMerchant) return;
+            try {
+                var result = await apiGet('getTransactions571', {
+                    code: currentMerchant.code,
+                    pin: currentUser.pin,
+                    date: getTodayStr()
+                });
+                if (result.success && result.transactions) {
+                    pzTransactions = result.transactions;
+                    pzRenderTransactions();
+                }
+            } catch(e) { console.warn('Erreur chargement transactions:', e.message); }
+        }
+
+        function logout() {
+            currentUser = null;
+            currentMerchant = null;
+            // Réinitialiser zone paiement 571
+            pzTransactions = [];
+            document.getElementById('paiementZone').classList.add('hidden');
+            document.getElementById('txBloc').classList.add('hidden'); 
             if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
             if (mgrTimerInterval) { clearInterval(mgrTimerInterval); mgrTimerInterval = null; }
             if (refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
@@ -2555,6 +3259,45 @@
             if (code) { document.getElementById('loginCode').value = code; showPage('loginPage'); }
         });
     </script>
+
+    <!-- ========== MODAL DÉTAIL TRANSACTION ========== -->
+    <div id="txDetailModal" class="hidden tx-detail-modal" onclick="if(event.target===this)closeTxDetail()">
+        <div class="tx-detail-content">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                <span style="color:#f0c040;font-size:0.85rem;font-weight:700;letter-spacing:0.1em">▪ DÉTAIL TRANSACTION</span>
+                <button onclick="closeTxDetail()" style="background:#2d2d4e;color:#a0a0b0;border:none;cursor:pointer;padding:0.25rem 0.5rem;border-radius:0.25rem;font-size:0.85rem">✕</button>
+            </div>
+            <div id="txDetailRows"></div>
+            <div id="txDetailAnnuleInfo" class="hidden" style="margin-top:0.75rem;padding:0.5rem;background:#2d1a1a;border:1px solid #7f1d1d;border-radius:0.375rem;color:#fca5a5;font-size:0.8rem"></div>
+            <div id="txDetailBtns" style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:1rem">
+                <button onclick="closeTxDetail()" style="background:#2d2d4e;color:#a0a0b0;padding:0.6rem;border-radius:0.5rem;border:none;cursor:pointer;font-weight:600">Fermer</button>
+                <button id="txBtnAnnuler" onclick="demanderAnnulationTx()" style="background:#7f1d1d;color:#fca5a5;padding:0.6rem;border-radius:0.5rem;border:none;cursor:pointer;font-weight:600">🗑 Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MODAL EXPORT ========== -->
+    <div id="exportModal" class="hidden export-modal" onclick="if(event.target===this)closeExportModal()">
+        <div style="background:white;border-radius:1rem;padding:1.5rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+                <h3 style="font-weight:700;color:#1f2937">📧 Export transactions 571</h3>
+                <button onclick="closeExportModal()" style="background:#f3f4f6;color:#374151;padding:0.25rem 0.5rem;border-radius:0.375rem;border:none;cursor:pointer">✕</button>
+            </div>
+            <div style="margin-bottom:1rem">
+                <label style="font-size:0.875rem;color:#374151;font-weight:600;display:block;margin-bottom:0.25rem">Date début</label>
+                <input type="date" id="exportDateDebut" class="input-style" style="padding:0.5rem">
+            </div>
+            <div style="margin-bottom:1.25rem">
+                <label style="font-size:0.875rem;color:#374151;font-weight:600;display:block;margin-bottom:0.25rem">Date fin</label>
+                <input type="date" id="exportDateFin" class="input-style" style="padding:0.5rem">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem">
+                <button onclick="lancerExport('email')" style="background:#2563eb;color:white;padding:0.6rem 0.25rem;border-radius:0.5rem;border:none;cursor:pointer;font-size:0.8rem;font-weight:600">📧 Email</button>
+                <button onclick="lancerExport('excel')" style="background:#16a34a;color:white;padding:0.6rem 0.25rem;border-radius:0.5rem;border:none;cursor:pointer;font-size:0.8rem;font-weight:600">📊 Excel</button>
+                <button onclick="lancerExport('les2')" style="background:#1e3a5f;color:white;padding:0.6rem 0.25rem;border-radius:0.5rem;border:none;cursor:pointer;font-size:0.8rem;font-weight:600">📧+📊 Les 2</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ========== MODAL ALERTE MAISON ========== -->
     <div id="appAlertModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;padding:1rem;z-index:9999">
