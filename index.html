@@ -1794,7 +1794,7 @@
                 
                 cashierSoldeSysteme = val;
                 document.getElementById('cashierSoldeSysteme').textContent = formatNum(val) + ' #';
-
+window.pzHeureOuverture = new Date().toTimeString().substring(0, 8);
 // Afficher stock théorique attendu
 document.getElementById('stockAttenduVal').textContent = formatNum(pzGetStockReel());
 document.getElementById('stockAttenduInfo').classList.remove('hidden');
@@ -3269,7 +3269,15 @@ if (Math.abs(G - stockTheorique) > 0.5) {
                     date: getTodayStr()
                 });
                 if (result.success && result.transactions) {
-                    pzTransactions = result.transactions;
+
+                 pzTransactions = result.transactions.filter(function(tx) {
+                if (!window.pzHeureOuverture) return true;
+                    return tx.heure >= window.pzHeureOuverture;
+                    });   
+                   
+                   
+                    
+                    
                     pzRenderTransactions();
                 }
             } catch(e) { console.warn('Erreur chargement transactions:', e.message); }
