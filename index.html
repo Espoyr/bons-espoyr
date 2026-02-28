@@ -812,7 +812,7 @@
 
                 <!-- Bons # à rendre -->
                 <div class="pz-row">
-                    <span class="pz-label">Bons # à rendre</span>
+                    <span class="pz-label"> retour en  Bons # (à rendre)</span>
                     <div class="pz-input-wrap">
                         
                         <input type="number" id="pzHashRendu" class="pz-input-red" step="0.5" min="0" placeholder="0,0" oninput="pzCalculer()">
@@ -822,7 +822,7 @@
 
                 <!-- # reçus du client -->
                 <div class="pz-row">
-                    <span class="pz-label"># reçus du client</span>
+                    <span class="pz-label"># bons # donnés par le client</span>
                     <div class="pz-input-wrap">
                         
                         <input type="number" id="pzHashRecu" class="pz-input-red" step="0.5" min="0" placeholder="0,0" oninput="pzCalculer()">
@@ -1916,14 +1916,17 @@ if (Math.abs(G - stockTheorique) > 0.5) {
                 const stockTheorique = pzGetStockReel();
                 const ecart571 = Math.round((G - stockTheorique) * 100) / 100;
                 if (Math.abs(ecart571) > 0.5) {
-                    await apiPost({
-                        action: 'saveEcartAvecJustification',
-                        codeCommerce: currentMerchant.code,
-                        pin: String(currentUser.pin),
-                        ecart: ecart571,
-                        justification: 'Écart clôture 571 : déclaré ' + formatNum(G) + '# vs théorique ' + formatNum(stockTheorique) + '#'
-                    });
-                }
+          await apiPost({
+            action: 'saveEcartAvecJustification',
+            codeCommerce: currentMerchant.code,
+            pin: String(currentUser.pin),
+            nomEmploye: currentUser.nom,
+            role: currentUser.role,
+            moment: 'fin',
+            soldeTheorique: stockTheorique,
+            valeurPhysique: G,
+            justification: 'Écart clôture 571 : déclaré ' + formatNum(G) + '# vs théorique ' + formatNum(stockTheorique) + '#'
+        });
                                
                 showAlert(msgFinal);
                 
