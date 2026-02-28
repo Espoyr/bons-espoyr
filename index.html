@@ -742,6 +742,12 @@
                 
                 <!-- STOCK FIN -->
                 <div id="stockFinSection">
+                    <div id="stockAttenduInfo" class="hidden mb-2 p-2 bg-blue-50 rounded text-center">
+                    <p class="text-sm text-blue-700">Stock théorique attendu : <strong id="stockAttenduVal">0</strong> #</p>
+                    </div>
+
+
+                    
                     <label class="text-sm text-gray-500">Stock en fin de journée</label>
                     <div style="display:flex;gap:0.5rem;margin-top:0.25rem">
                         <input type="number" id="stockFin" step="any" min="0" lang="en" class="input-style" style="flex:1;padding:0.75rem;font-size:1.25rem;text-align:center" disabled placeholder="0">
@@ -1789,6 +1795,11 @@
                 cashierSoldeSysteme = val;
                 document.getElementById('cashierSoldeSysteme').textContent = formatNum(val) + ' #';
 
+// Afficher stock théorique attendu
+document.getElementById('stockAttenduVal').textContent = formatNum(pzGetStockReel());
+document.getElementById('stockAttenduInfo').classList.remove('hidden');
+        
+
                 // Afficher zone paiement 571
                 pzTransactions = [];
                 pzShowZone();
@@ -1812,6 +1823,16 @@
             const X = parseNum(document.getElementById('stockDebut').value) || 0;
             const G = parseNum(document.getElementById('stockFin').value);
             if (isNaN(G) || G < 0) return showAlert('Montant invalide');
+
+const stockTheorique = pzGetStockReel();
+if (Math.abs(G - stockTheorique) > 0.5) {
+    if (!confirm('⚠️ Attention !\n\nVous déclarez : ' + formatNum(G) + ' #\nStock théorique (transactions du jour) : ' + formatNum(stockTheorique) + ' #\nDifférence : ' + formatNum(G - stockTheorique) + ' #\n\nVoulez-vous continuer quand même ?')) {
+        return;
+    }
+}
+
+
+            
             
             const C = cashierTotalC || 0;
             const F = cashierTotalF || 0;
@@ -1890,7 +1911,22 @@
                 } else if (H < 0) {
                     msgFinal += '\n\n💶 Rappel : Votre caisse € a ' + formatNum(Math.abs(H)) + '€ en trop';
                 }
+
+// Enregistrer écart 571 si différence
+                const stockTheorique = pzGetStockReel();
+                const ecart571 = Math.round((G - stockTheorique) * 100) / 100;
+                if (Math.abs(ecart571) > 0.5) {
+                    await apiPost({
+                        action: 'saveEcartAvecJustification',
+                        codeCommerce: currentMerchant.code,
+                        pin: String(currentUser.pin),
+                        ecart: ecart571,
+                        justification: 'Écart clôture 571 : déclaré ' + formatNum(G) + '# vs théorique ' + formatNum(stockTheorique) + '#'
+                    });
+                }
+                               
                 showAlert(msgFinal);
+                
             } else {
                 console.error('Clôture caissier échouée:', JSON.stringify(result), 'PIN:', currentUser.pin, 'Code:', currentMerchant.code);
                 showAlert('Erreur : ' + (result.error || 'Échec'));
@@ -2990,6 +3026,9 @@
             pzRenderTransactions();
             pzViderChamps();
 
+
+        
+
             // Sauvegarder en backend
             pzSauvegarderTransaction(tx);
         }
@@ -3023,6 +3062,8 @@
             document.getElementById('pzStockAvant').textContent = formatNum(pzGetStockReel()) + ' #';
             document.getElementById('pzMouvement').textContent = '0,0 #';
             document.getElementById('pzStockApres').textContent = formatNum(pzGetStockReel()) + ' #';
+
+        document.getElementById('stockAttenduVal').textContent = formatNum(pzGetStockReel());
         }
 
         function pzRenderTransactions() {
