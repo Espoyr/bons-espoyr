@@ -3256,10 +3256,23 @@ if (Math.abs(G - stockTheorique) > 0.5) {
                 dateFin: dateFin,
                 mode: mode
             });
-            if (result.success) {
-                showAlert('✅ Export lancé !\n\n' + (result.message || 'Le fichier vous a été envoyé'));
+            if (!result.success) {
+                return showAlert('Erreur export : ' + (result.error || 'Échec'));
+            }
+            if (mode === 'csv' && result.csv) {
+                // Téléchargement direct côté client
+                var blob = new Blob(['\uFEFF' + result.csv], { type: 'text/csv;charset=utf-8;' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = result.nomFichier || ('571_' + currentMerchant.code + '_' + dateDebut + '_' + dateFin + '.csv');
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showAlert('✅ CSV téléchargé — ' + result.nbLignes + ' transaction(s)', 'success');
             } else {
-                showAlert('Erreur export : ' + (result.error || 'Échec'));
+                showAlert('✅ Export lancé !\n\n' + (result.message || 'Le fichier vous a été envoyé'));
             }
         }
 
@@ -3344,9 +3357,9 @@ if (Math.abs(G - stockTheorique) > 0.5) {
                 <label style="font-size:0.875rem;color:#374151;font-weight:600;display:block;margin-bottom:0.25rem">Date fin</label>
                 <input type="date" id="exportDateFin" class="input-style" style="padding:0.5rem">
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
                 <button onclick="lancerExport('email')" style="background:#2563eb;color:white;padding:0.6rem 0.25rem;border-radius:0.5rem;border:none;cursor:pointer;font-size:0.8rem;font-weight:600">📧 Email</button>
-                
+                <button onclick="lancerExport('csv')" style="background:#16a34a;color:white;padding:0.6rem 0.25rem;border-radius:0.5rem;border:none;cursor:pointer;font-size:0.8rem;font-weight:600">⬇️ CSV</button>
             </div>
         </div>
     </div>
