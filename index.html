@@ -1380,9 +1380,27 @@
         }
 
         // ========== AUTO-LOCK TIMER ==========
+        let autoLockCountdown = null;
         function resetAutoLock() {
             if (autoLockTimer) { clearTimeout(autoLockTimer); autoLockTimer = null; }
+            if (autoLockCountdown) { clearInterval(autoLockCountdown); autoLockCountdown = null; }
+            
+            let secondsLeft = 60;
+            showAutoLockIndicator(secondsLeft);
+            
+            autoLockCountdown = setInterval(function() {
+                secondsLeft--;
+                if (secondsLeft <= 0) {
+                    clearInterval(autoLockCountdown);
+                    autoLockCountdown = null;
+                    hideAutoLockIndicator();
+                } else {
+                    updateAutoLockIndicator(secondsLeft);
+                }
+            }, 1000);
+            
             autoLockTimer = setTimeout(function() {
+                hideAutoLockIndicator();
                 if (currentUser && currentMerchant && pinEnMemoire) {
                     lockSession();
                 }
@@ -1390,6 +1408,30 @@
         }
         function stopAutoLock() {
             if (autoLockTimer) { clearTimeout(autoLockTimer); autoLockTimer = null; }
+            if (autoLockCountdown) { clearInterval(autoLockCountdown); autoLockCountdown = null; }
+            hideAutoLockIndicator();
+        }
+        function showAutoLockIndicator(sec) {
+            let el = document.getElementById('autoLockIndicator');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'autoLockIndicator';
+                el.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#1e293b;color:#f0c040;text-align:center;padding:0.3rem;font-size:0.75rem;font-weight:600;z-index:9999;letter-spacing:0.05em;';
+                document.body.appendChild(el);
+            }
+            el.textContent = '🔒 Verrouillage auto dans ' + sec + 's';
+            el.style.display = 'block';
+        }
+        function updateAutoLockIndicator(sec) {
+            const el = document.getElementById('autoLockIndicator');
+            if (el) {
+                el.textContent = '🔒 Verrouillage auto dans ' + sec + 's';
+                if (sec <= 10) el.style.background = '#7f1d1d';
+            }
+        }
+        function hideAutoLockIndicator() {
+            const el = document.getElementById('autoLockIndicator');
+            if (el) el.style.display = 'none';
         }
 
         async function sha256(message) {
@@ -3184,6 +3226,8 @@ if (Math.abs(G - stockTheorique) > 0.5) {
         }
 
         function pzCalculer() {
+            // L'utilisateur interagit → annuler le verrouillage auto
+            stopAutoLock();
             var prix  = parseNum(document.getElementById('pzPrix').value) || 0;
             var hRecu = parseNum(document.getElementById('pzHashRecu').value) || 0;
             var hRend = parseNum(document.getElementById('pzHashRendu').value) || 0;
