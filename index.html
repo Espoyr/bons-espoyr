@@ -338,6 +338,70 @@
     input[type=number]::-webkit-outer-spin-button,
     input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
+    /* ========== ÉCRAN VERROUILLAGE ========== */
+    .lock-overlay {
+        position: fixed; inset: 0;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .lock-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 1rem;
+        padding: 2rem;
+        width: 100%;
+        max-width: 320px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .lock-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .lock-title { color: #e2e8f0; font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .lock-subtitle { color: #64748b; font-size: 0.85rem; margin-bottom: 1.5rem; }
+    .lock-pin-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: #0f172a;
+        border: 2px solid #334155;
+        border-radius: 0.75rem;
+        color: #f1f5f9;
+        font-size: 1.5rem;
+        font-family: monospace;
+        text-align: center;
+        letter-spacing: 0.5em;
+        margin-bottom: 1rem;
+    }
+    .lock-pin-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); outline: none; }
+    .lock-pin-input::placeholder { color: #475569; letter-spacing: 0.3em; font-size: 1rem; }
+    .lock-btn {
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 1rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 0.5rem;
+    }
+    .lock-btn-primary { background: linear-gradient(135deg, #1e3a5f, #2e5090); color: white; }
+    .lock-btn-primary:hover { opacity: 0.9; }
+    .lock-btn-secondary { background: transparent; color: #64748b; border: 1px solid #334155; }
+    .lock-btn-secondary:hover { color: #94a3b8; border-color: #475569; }
+    .lock-error { color: #f87171; font-size: 0.85rem; margin-bottom: 0.75rem; min-height: 1.25rem; }
+    .btn-lock-header {
+        background: rgba(255,255,255,0.2);
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.5rem;
+        border: none;
+        cursor: pointer;
+        color: white;
+        font-size: 1rem;
+    }
+
     .fixed { position: fixed; }
     .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
     .z-50 { z-index: 50; }
@@ -605,9 +669,9 @@
             <button onclick="showPage('homePage')" class="text-gray-500 mb-4" style="background:none">← Retour</button>
             <div class="bg-white rounded-2xl card-shadow p-6">
                 <h2 class="text-2xl font-bold text-center mb-6">🔑 Connexion</h2>
-                <form onsubmit="handleLogin(event)" class="space-y-4">
-                    <input type="text" id="loginCode" required placeholder="Code commerce (ESP-XXXX-XXXX)" class="input-style font-mono text-center" style="text-transform:uppercase">
-                    <input type="password" id="loginPIN" required placeholder="PIN (4 chiffres)" maxlength="4" class="input-style font-mono text-center">
+                <form onsubmit="handleLogin(event)" class="space-y-4" autocomplete="off">
+                    <input type="text" id="loginCode" required placeholder="Code commerce (ESP-XXXX-XXXX)" class="input-style font-mono text-center" style="text-transform:uppercase" autocomplete="off">
+                    <input type="password" id="loginPIN" required placeholder="PIN (4 chiffres)" maxlength="4" class="input-style font-mono text-center" autocomplete="off">
                     <button type="submit" class="btn-primary">Connexion</button>
                 </form>
             </div>
@@ -691,6 +755,7 @@
                 </div>
                 <div style="display:flex;gap:0.5rem;align-items:center">
                     <button onclick="showCashierQR()" style="background:rgba(255,255,255,0.2);padding:0.25rem 0.5rem;border-radius:0.5rem">📱</button>
+                    <button onclick="lockSession()" class="btn-lock-header" title="Verrouiller">🔒</button>
                     <button onclick="logout()">Déconnexion</button>
                 </div>
             </div>
@@ -934,7 +999,10 @@
                     <h1 id="managerTitle">🏪 Responsable</h1>
                     <p id="managerSubtitle"></p>
                 </div>
-                <button onclick="logout()">Déconnexion</button>
+                <div style="display:flex;gap:0.5rem;align-items:center">
+                    <button onclick="lockSession()" class="btn-lock-header" title="Verrouiller">🔒</button>
+                    <button onclick="logout()">Déconnexion</button>
+                </div>
             </div>
         </header>
         
@@ -1290,6 +1358,133 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbxruZSeDiBYtloEuz1LVon7Sv3cNdSrLg_Xq1OyLMtrOt4Em2KRV3P5-OoHMTTIa9g/exec';
         const QR_BASE_URL = 'https://espoyr.github.io/bons-espoyr/index.html';
         let currentUser = null, currentMerchant = null, ajustType = 'ajout';
+
+        // ========== SÉCURITÉ PIN ==========
+        let pinEnMemoire = null; // PIN brut — en mémoire JS uniquement, jamais dans le DOM/localStorage
+        let activePageBeforeLock = null; // Page active avant verrouillage
+
+        async function sha256(message) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function saveSessionToStorage() {
+            if (!currentUser || !currentMerchant || !pinEnMemoire) return;
+            sha256(pinEnMemoire).then(hash => {
+                localStorage.setItem('esp_pinHash', hash);
+                localStorage.setItem('esp_code', currentMerchant.code);
+                localStorage.setItem('esp_userName', currentUser.nom);
+                localStorage.setItem('esp_userRole', currentUser.role || '');
+                localStorage.setItem('esp_activePage', activePageBeforeLock || (currentUser.role === 'responsable' ? 'managerPage' : 'cashierPage'));
+            });
+        }
+
+        function clearSessionStorage() {
+            localStorage.removeItem('esp_pinHash');
+            localStorage.removeItem('esp_code');
+            localStorage.removeItem('esp_userName');
+            localStorage.removeItem('esp_userRole');
+            localStorage.removeItem('esp_activePage');
+        }
+
+        function lockSession() {
+            // Mémoriser la page active
+            const pages = ['cashierPage', 'managerPage'];
+            for (const p of pages) {
+                if (!document.getElementById(p).classList.contains('hidden')) {
+                    activePageBeforeLock = p;
+                    break;
+                }
+            }
+            saveSessionToStorage();
+            // Afficher l'écran de verrouillage
+            document.getElementById('lockUserName').textContent = currentUser.nom;
+            document.getElementById('lockMerchantName').textContent = currentMerchant.nom;
+            document.getElementById('lockPIN').value = '';
+            document.getElementById('lockError').textContent = '';
+            document.getElementById('lockScreen').classList.remove('hidden');
+            document.getElementById('lockScreen').style.display = 'flex';
+            setTimeout(() => document.getElementById('lockPIN').focus(), 100);
+        }
+
+        async function unlockSession() {
+            const pin = document.getElementById('lockPIN').value;
+            if (!pin) return;
+
+            // Cas 1 : session encore en mémoire (verrouillage simple)
+            if (pinEnMemoire) {
+                if (pin === pinEnMemoire) {
+                    document.getElementById('lockPIN').value = '';
+                    document.getElementById('lockScreen').classList.add('hidden');
+                    document.getElementById('lockScreen').style.display = 'none';
+                    return;
+                } else {
+                    document.getElementById('lockError').textContent = '❌ PIN incorrect';
+                    document.getElementById('lockPIN').value = '';
+                    document.getElementById('lockPIN').focus();
+                    return;
+                }
+            }
+
+            // Cas 2 : F5 — session perdue, vérifier contre le hash localStorage
+            const storedHash = localStorage.getItem('esp_pinHash');
+            const storedCode = localStorage.getItem('esp_code');
+            if (!storedHash || !storedCode) { logoutFromLock(); return; }
+
+            const typedHash = await sha256(pin);
+            if (typedHash !== storedHash) {
+                document.getElementById('lockError').textContent = '❌ PIN incorrect';
+                document.getElementById('lockPIN').value = '';
+                document.getElementById('lockPIN').focus();
+                return;
+            }
+
+            // Hash OK → re-login via API pour récupérer la session complète
+            try {
+                showLoader();
+                const result = await apiGet('login', { code: storedCode, pin: pin });
+                hideLoader();
+                if (result.success) {
+                    currentUser = result.employee;
+                    currentMerchant = result.merchant;
+                    pinEnMemoire = pin;
+                    document.getElementById('lockPIN').value = '';
+                    document.getElementById('lockScreen').classList.add('hidden');
+                    document.getElementById('lockScreen').style.display = 'none';
+                    // Restaurer la page active
+                    const targetPage = localStorage.getItem('esp_activePage') || 'cashierPage';
+                    if (targetPage === 'managerPage' || result.isManager) {
+                        loadManagerDashboard();
+                        showPage('managerPage');
+                    } else {
+                        loadCashierDashboard();
+                        showPage('cashierPage');
+                    }
+                    saveSessionToStorage();
+                } else {
+                    document.getElementById('lockError').textContent = '❌ ' + (result.error || 'Échec connexion');
+                    document.getElementById('lockPIN').value = '';
+                    document.getElementById('lockPIN').focus();
+                }
+            } catch(e) {
+                hideLoader();
+                document.getElementById('lockError').textContent = '❌ Erreur réseau';
+                document.getElementById('lockPIN').value = '';
+            }
+        }
+
+        function logoutFromLock() {
+            pinEnMemoire = null;
+            currentUser = null;
+            currentMerchant = null;
+            clearSessionStorage();
+            document.getElementById('lockScreen').classList.add('hidden');
+            document.getElementById('lockScreen').style.display = 'none';
+            showPage('homePage');
+        }
         let timerInterval = null;
         let mgrTimerInterval = null;
         let currentCaisses = [];
@@ -1571,12 +1766,30 @@
         // === LOGIN ===
         async function handleLogin(e) {
             e.preventDefault();
-            const result = await apiGet('login', { code: document.getElementById('loginCode').value.toUpperCase(), pin: document.getElementById('loginPIN').value });
+            const codeField = document.getElementById('loginCode');
+            const pinField = document.getElementById('loginPIN');
+            const code = codeField.value.toUpperCase();
+            const pin = pinField.value;
+            const result = await apiGet('login', { code: code, pin: pin });
             if (result.success) {
                 currentUser = result.employee;
                 currentMerchant = result.merchant;
-                if (result.isManager) { loadManagerDashboard(); showPage('managerPage'); }
-                else { loadCashierDashboard(); showPage('cashierPage'); }
+                pinEnMemoire = pin; // Garder en mémoire JS uniquement
+                // Nettoyer les champs du DOM — le navigateur ne verra plus le PIN
+                pinField.value = '';
+                codeField.value = '';
+                // Sauvegarder la session (hash du PIN, pas le PIN en clair)
+                if (result.isManager) {
+                    activePageBeforeLock = 'managerPage';
+                    saveSessionToStorage();
+                    loadManagerDashboard();
+                    showPage('managerPage');
+                } else {
+                    activePageBeforeLock = 'cashierPage';
+                    saveSessionToStorage();
+                    loadCashierDashboard();
+                    showPage('cashierPage');
+                }
             } else showAlert('Erreur: ' + (result.error || 'Échec'));
         }
 
@@ -3303,6 +3516,8 @@ if (Math.abs(G - stockTheorique) > 0.5) {
         function logout() {
             currentUser = null;
             currentMerchant = null;
+            pinEnMemoire = null;
+            clearSessionStorage();
             // Réinitialiser zone paiement 571
             pzTransactions = [];
             document.getElementById('paiementZone').classList.add('hidden');
@@ -3322,9 +3537,36 @@ if (Math.abs(G - stockTheorique) > 0.5) {
 
         document.addEventListener('DOMContentLoaded', () => {
             const code = new URLSearchParams(window.location.search).get('code');
-            if (code) { document.getElementById('loginCode').value = code; showPage('loginPage'); }
+            if (code) { document.getElementById('loginCode').value = code; showPage('loginPage'); return; }
+
+            // F5 Recovery : session en localStorage mais PIN perdu en mémoire
+            const storedHash = localStorage.getItem('esp_pinHash');
+            const storedCode = localStorage.getItem('esp_code');
+            if (storedHash && storedCode) {
+                // Afficher l'écran de déverrouillage
+                document.getElementById('lockUserName').textContent = localStorage.getItem('esp_userName') || 'Utilisateur';
+                document.getElementById('lockMerchantName').textContent = 'Retapez votre PIN pour reprendre';
+                document.getElementById('lockPIN').value = '';
+                document.getElementById('lockError').textContent = '';
+                document.getElementById('lockScreen').classList.remove('hidden');
+                document.getElementById('lockScreen').style.display = 'flex';
+                setTimeout(() => document.getElementById('lockPIN').focus(), 100);
+            }
         });
     </script>
+
+    <!-- ========== ÉCRAN VERROUILLAGE / RECONNEXION F5 ========== -->
+    <div id="lockScreen" class="hidden lock-overlay">
+        <div class="lock-card">
+            <div class="lock-icon">🔒</div>
+            <div class="lock-title" id="lockUserName">Session verrouillée</div>
+            <div class="lock-subtitle" id="lockMerchantName"></div>
+            <p class="lock-error" id="lockError"></p>
+            <input type="password" id="lockPIN" maxlength="4" placeholder="PIN" class="lock-pin-input" autocomplete="off" onkeydown="if(event.key==='Enter')unlockSession()">
+            <button onclick="unlockSession()" class="lock-btn lock-btn-primary">🔓 Déverrouiller</button>
+            <button onclick="logoutFromLock()" class="lock-btn lock-btn-secondary">Déconnexion</button>
+        </div>
+    </div>
 
     <!-- ========== MODAL DÉTAIL TRANSACTION ========== -->
     <div id="txDetailModal" class="hidden tx-detail-modal" onclick="if(event.target===this)closeTxDetail()">
