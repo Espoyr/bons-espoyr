@@ -786,7 +786,7 @@
                 <div id="stockDebutSection" class="mb-4">
                     <label class="text-sm text-gray-500">Stock de début d'activité</label>
                     <div style="display:flex;gap:0.5rem;margin-top:0.25rem">
-                        <input type="number" id="stockDebut" step="any" min="0" lang="en" class="input-style" style="flex:1;padding:0.75rem;font-size:1.25rem;text-align:center" placeholder="0">
+                        <input type="number" id="stockDebut" step="0.5" min="0" lang="en" class="input-style" style="flex:1;padding:0.75rem;font-size:1.25rem;text-align:center" placeholder="0">
                         <button id="btnStockDebut" onclick="stockDebutOK()" class="btn-success" style="padding:0.75rem 1.5rem">✓ OK</button>
                     </div>
                     
@@ -821,7 +821,7 @@
                     
                     <label class="text-sm text-gray-500">Stock en fin de journée</label>
                     <div style="display:flex;gap:0.5rem;margin-top:0.25rem">
-                        <input type="number" id="stockFin" step="any" min="0" lang="en" class="input-style" style="flex:1;padding:0.75rem;font-size:1.25rem;text-align:center" disabled placeholder="0">
+                        <input type="number" id="stockFin" step="0.5" min="0" lang="en" class="input-style" style="flex:1;padding:0.75rem;font-size:1.25rem;text-align:center" disabled placeholder="0">
                         <button id="btnStockFin" onclick="stockFinOK()" style="background:#f97316;color:white;padding:0.75rem 1.5rem;border-radius:0.5rem;font-weight:600" disabled>✓ OK</button>
                     </div>
                     
@@ -1033,12 +1033,12 @@
                     <div class="grid grid-cols-3 gap-3 mb-4">
                         <div class="stock-box bg-blue-50">
                             <label class="text-blue-600">DÉBUT</label>
-                            <input type="number" id="mgrStockDebut" step="any" min="0" lang="en" onchange="mgrCalculateDiff()" placeholder="0">
+                            <input type="number" id="mgrStockDebut" step="0.5" min="0" lang="en" onchange="mgrCalculateDiff()" placeholder="0">
                             <p class="unit text-blue-600">#</p>
                         </div>
                         <div class="stock-box bg-orange-50">
                             <label class="text-orange-600">FIN</label>
-                            <input type="number" id="mgrStockFin" step="any" min="0" lang="en" onchange="mgrCalculateDiff()" placeholder="0">
+                            <input type="number" id="mgrStockFin" step="0.5" min="0" lang="en" onchange="mgrCalculateDiff()" placeholder="0">
                             <p class="unit text-orange-600">#</p>
                         </div>
                         <div class="stock-box bg-gray-100">
@@ -1071,7 +1071,7 @@
                     
                     <div class="space-y-3">
                         <div class="flex items-center gap-2">
-                            <input type="number" id="ajustMontant" step="any" min="0" lang="en" placeholder="0" class="input-style text-center text-xl font-bold" style="flex:1;background:#fff">
+                            <input type="number" id="ajustMontant" step="0.5" min="0" lang="en" placeholder="0" class="input-style text-center text-xl font-bold" style="flex:1;background:#fff">
                             <span class="font-bold text-xl">#</span>
                         </div>
                         <textarea id="ajustMotif" rows="2" placeholder="Justification obligatoire..." class="input-style text-sm"></textarea>
@@ -1368,6 +1368,29 @@
         // ========== SÉCURITÉ PIN ==========
         let pinEnMemoire = null; // PIN brut — en mémoire JS uniquement, jamais dans le DOM/localStorage
         let activePageBeforeLock = null; // Page active avant verrouillage
+        let autoLockTimer = null; // Timer auto-verrouillage après validation
+
+        // ========== VALIDATION DEMI-UNITÉ ==========
+        function estDemiUnite(val) {
+            if (isNaN(val)) return false;
+            return Math.abs(Math.round(val * 2) / 2 - val) < 0.001;
+        }
+        function corrigerDemiUnite(val) {
+            return Math.round(val * 2) / 2;
+        }
+
+        // ========== AUTO-LOCK TIMER ==========
+        function resetAutoLock() {
+            if (autoLockTimer) { clearTimeout(autoLockTimer); autoLockTimer = null; }
+            autoLockTimer = setTimeout(function() {
+                if (currentUser && currentMerchant && pinEnMemoire) {
+                    lockSession();
+                }
+            }, 60000); // 1 minute
+        }
+        function stopAutoLock() {
+            if (autoLockTimer) { clearTimeout(autoLockTimer); autoLockTimer = null; }
+        }
 
         async function sha256(message) {
             const encoder = new TextEncoder();
@@ -1397,6 +1420,7 @@
         }
 
         function lockSession() {
+            stopAutoLock();
             // Mémoriser la page active
             const pages = ['cashierPage', 'managerPage'];
             for (const p of pages) {
@@ -1487,6 +1511,7 @@
             currentUser = null;
             currentMerchant = null;
             clearSessionStorage();
+            stopAutoLock();
             document.getElementById('lockScreen').classList.add('hidden');
             document.getElementById('lockScreen').style.display = 'none';
             showPage('homePage');
@@ -1956,6 +1981,7 @@
         function stockDebutOK() {
             const val = parseNum(document.getElementById('stockDebut').value);
             if (isNaN(val) || val < 0) return showAlert('Montant invalide');
+            if (!estDemiUnite(val)) return showAlert('⚠️ Le stock doit être à la demi-unité (x,0 ou x,5)');
             
             document.getElementById('recapSoldeSysteme').textContent = formatNum(cashierSoldeSysteme);
             document.getElementById('recapDeclare').textContent = formatNum(val);
@@ -2042,6 +2068,7 @@ document.getElementById('stockAttenduInfo').classList.remove('hidden');
             const X = parseNum(document.getElementById('stockDebut').value) || 0;
             const G = parseNum(document.getElementById('stockFin').value);
             if (isNaN(G) || G < 0) return showAlert('Montant invalide');
+            if (!estDemiUnite(G)) return showAlert('⚠️ Le stock doit être à la demi-unité (x,0 ou x,5)');
 
 const stockTheorique = pzGetStockReel();
 if (Math.abs(G - stockTheorique) > 0.5) {
@@ -2194,6 +2221,7 @@ if (Math.abs(G - stockTheorique) > 0.5) {
             if (isNaN(montant) || montant <= 0) {
                 return showAlert('Montant invalide');
             }
+            if (!estDemiUnite(montant)) return showAlert('⚠️ Le montant doit être à la demi-unité (x,0 ou x,5)');
             
             if (!isNaN(montant) && montant > 0) {
                 showConfirm('Retourner ' + formatNum(montant) + '# au responsable ?', async () => {
@@ -2421,6 +2449,8 @@ if (Math.abs(G - stockTheorique) > 0.5) {
         async function mgrCloturer() {
             var d = parseNum(document.getElementById('mgrStockDebut').value) || 0;
             var f = parseNum(document.getElementById('mgrStockFin').value) || 0;
+            if (!estDemiUnite(d)) return showAlert('⚠️ Le stock début doit être à la demi-unité (x,0 ou x,5)');
+            if (!estDemiUnite(f)) return showAlert('⚠️ Le stock fin doit être à la demi-unité (x,0 ou x,5)');
             var C = mgrTotalC || 0;
             var F = mgrTotalF || 0;
             var H = f - d - C + F;
@@ -2441,6 +2471,7 @@ if (Math.abs(G - stockTheorique) > 0.5) {
         async function mgrSaveStock(type) {
             const val = parseNum(document.getElementById(type === 'debut' ? 'mgrStockDebut' : 'mgrStockFin').value);
             if (isNaN(val) || val < 0) return showAlert('Montant invalide');
+            if (!estDemiUnite(val)) return showAlert('⚠️ Le stock doit être à la demi-unité (x,0 ou x,5)');
             
             const result = await apiPost({ action: 'saveJournee', codeCommerce: currentMerchant.code, pin: currentUser.pin, date: getTodayStr(), type, montant: val });
             if (!result.success) return showAlert('Erreur: ' + (result.error || 'Échec'));
@@ -2799,6 +2830,7 @@ if (Math.abs(G - stockTheorique) > 0.5) {
             
             if (!caisseId) return showAlert('Sélectionnez une caisse');
             if (isNaN(montant) || montant <= 0) return showAlert('Montant invalide — entrez un nombre positif');
+            if (!estDemiUnite(montant)) return showAlert('⚠️ Le montant doit être à la demi-unité (x,0 ou x,5)');
             
             montant = Math.round(montant * 2) / 2;
             const caisse = currentCaisses.find(c => c.id === caisseId);
@@ -2910,6 +2942,7 @@ if (Math.abs(G - stockTheorique) > 0.5) {
             const montant = parseNum(document.getElementById('ajustMontant').value);
             const motif = document.getElementById('ajustMotif').value.trim();
             if (isNaN(montant) || montant < 0.5) return showAlert('Montant invalide (min 0,5 #)');
+            if (!estDemiUnite(montant)) return showAlert('⚠️ Le montant doit être à la demi-unité (x,0 ou x,5)');
             if (!motif) return showAlert('Justification obligatoire !');
             
             const result = await apiPost({ action: 'addAjustement', codeCommerce: currentMerchant.code, pin: currentUser.pin, type: ajustType, montant, motif });
@@ -3203,6 +3236,8 @@ if (Math.abs(G - stockTheorique) > 0.5) {
 
             if (prix <= 0) return showAlert('⚠️ Veuillez saisir un prix de vente');
             if (hRecu === 0 && hRend === 0) return showAlert('⚠️ Au moins un mouvement # est requis');
+            if (!estDemiUnite(hRecu)) return showAlert('⚠️ Les # reçus doivent être à la demi-unité (x,0 ou x,5)');
+            if (!estDemiUnite(hRend)) return showAlert('⚠️ Les # rendus doivent être à la demi-unité (x,0 ou x,5)');
 
             var resteEuro = Math.round((prix + hRend - hRecu) * 100) / 100;
             var mouvement = Math.round((hRecu - hRend) * 100) / 100;
@@ -3254,6 +3289,9 @@ if (Math.abs(G - stockTheorique) > 0.5) {
 
             // Sauvegarder en backend
             pzSauvegarderTransaction(tx);
+
+            // Auto-verrouillage dans 1 minute
+            resetAutoLock();
         }
 
         async function pzSauvegarderTransaction(tx) {
@@ -3524,6 +3562,7 @@ if (Math.abs(G - stockTheorique) > 0.5) {
             currentMerchant = null;
             pinEnMemoire = null;
             clearSessionStorage();
+            stopAutoLock();
             // Réinitialiser zone paiement 571
             pzTransactions = [];
             document.getElementById('paiementZone').classList.add('hidden');
@@ -3568,7 +3607,7 @@ if (Math.abs(G - stockTheorique) > 0.5) {
             <div class="lock-title" id="lockUserName">Session verrouillée</div>
             <div class="lock-subtitle" id="lockMerchantName"></div>
             <p class="lock-error" id="lockError"></p>
-            <input type="text" id="lockPIN" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="PIN" class="lock-pin-input pin-secure" autocomplete="off" name="esp_lock_x" onkeydown="if(event.key==='Enter')unlockSession()">
+            <input type="text" id="lockPIN" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="PIN" class="lock-pin-input pin-secure" autocomplete="off" name="esp_lock_x" onkeydown="if(event.key==='Enter')unlockSession()" oninput="if(this.value.length===4)unlockSession()">
             <button onclick="unlockSession()" class="lock-btn lock-btn-primary">🔓 Déverrouiller</button>
             <button onclick="logoutFromLock()" class="lock-btn lock-btn-secondary">Déconnexion</button>
         </div>
