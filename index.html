@@ -2502,7 +2502,7 @@ if (Math.abs(G - stockTheorique) > 0.5) {
             let transfertsEntrantsCount = 0;
             
             // Si caisse unique : pas de transferts à afficher
-            const config = currentMerchant.caisseUnique || false;
+           const config = currentMerchant.caisseUnique === true;
             if (config) {
                 document.getElementById('mgrTransfertsEnAttente').classList.add('hidden');
                 document.getElementById('mgrTransfertsStock').classList.add('hidden');
