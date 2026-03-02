@@ -338,6 +338,12 @@
     input[type=number]::-webkit-outer-spin-button,
     input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
+    .pin-secure {
+        -webkit-text-security: disc;
+        -moz-text-security: disc;
+        text-security: disc;
+    }
+
     /* ========== ÉCRAN VERROUILLAGE ========== */
     .lock-overlay {
         position: fixed; inset: 0;
@@ -670,8 +676,8 @@
             <div class="bg-white rounded-2xl card-shadow p-6">
                 <h2 class="text-2xl font-bold text-center mb-6">🔑 Connexion</h2>
                 <form onsubmit="handleLogin(event)" class="space-y-4" autocomplete="off">
-                    <input type="text" id="loginCode" required placeholder="Code commerce (ESP-XXXX-XXXX)" class="input-style font-mono text-center" style="text-transform:uppercase" autocomplete="off">
-                    <input type="password" id="loginPIN" required placeholder="PIN (4 chiffres)" maxlength="4" class="input-style font-mono text-center" autocomplete="off">
+                    <input type="text" id="loginCode" required placeholder="Code commerce (ESP-XXXX-XXXX)" class="input-style font-mono text-center" style="text-transform:uppercase" autocomplete="off" name="esp_code_x">
+                    <input type="text" id="loginPIN" required placeholder="PIN (4 chiffres)" maxlength="4" inputmode="numeric" pattern="[0-9]*" class="input-style font-mono text-center pin-secure" autocomplete="off" name="esp_pin_x">
                     <button type="submit" class="btn-primary">Connexion</button>
                 </form>
             </div>
@@ -705,7 +711,7 @@
                     <input type="tel" id="regTel" required placeholder="Téléphone *" class="input-style">
                     <div class="bg-green-50 rounded-xl p-4">
                         <label class="text-sm font-semibold text-green-800">🔐 Choisissez votre code PIN *</label>
-                        <input type="password" id="regPIN" required placeholder="PIN (4 chiffres minimum)" minlength="4" maxlength="6" pattern="[0-9]{4,6}" class="input-style font-mono text-center mt-2">
+                        <input type="text" id="regPIN" required placeholder="PIN (4 chiffres minimum)" minlength="4" maxlength="6" inputmode="numeric" pattern="[0-9]{4,6}" class="input-style font-mono text-center mt-2 pin-secure" autocomplete="off" name="esp_reg_x">
                         <p class="text-xs text-green-600 mt-1">Ce PIN vous permettra de vous connecter après validation.</p>
                     </div>
                     <div class="bg-blue-50 rounded-xl p-4 space-y-3">
@@ -1245,7 +1251,7 @@
                 </select>
                 <div class="bg-green-50 rounded-xl p-3">
                     <label class="text-sm font-semibold text-green-800">🔐 Code PIN *</label>
-                    <input type="password" id="empPIN" required placeholder="PIN (4 chiffres min)" minlength="4" maxlength="6" pattern="[0-9]{4,6}" class="input-style font-mono text-center mt-2">
+                    <input type="text" id="empPIN" required placeholder="PIN (4 chiffres min)" minlength="4" maxlength="6" inputmode="numeric" pattern="[0-9]{4,6}" class="input-style font-mono text-center mt-2 pin-secure" autocomplete="off" name="esp_emp_x">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <button type="button" onclick="closeAddEmployee()" class="btn-secondary">Annuler</button>
@@ -1262,7 +1268,7 @@
             <div class="bg-white rounded-2xl card-shadow p-6">
                 <h2 class="text-2xl font-bold text-center mb-6">🏛️ Admin ASBL</h2>
                 <form onsubmit="handleAdminLogin(event)">
-                    <input type="password" id="adminPassword" required placeholder="Mot de passe" class="input-style mb-4">
+                    <input type="text" id="adminPassword" required placeholder="Mot de passe" class="input-style mb-4 pin-secure" autocomplete="off" name="esp_admin_x">
                     <button type="submit" class="btn-primary">Connexion</button>
                 </form>
             </div>
@@ -3562,7 +3568,7 @@ if (Math.abs(G - stockTheorique) > 0.5) {
             <div class="lock-title" id="lockUserName">Session verrouillée</div>
             <div class="lock-subtitle" id="lockMerchantName"></div>
             <p class="lock-error" id="lockError"></p>
-            <input type="password" id="lockPIN" maxlength="4" placeholder="PIN" class="lock-pin-input" autocomplete="off" onkeydown="if(event.key==='Enter')unlockSession()">
+            <input type="text" id="lockPIN" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="PIN" class="lock-pin-input pin-secure" autocomplete="off" name="esp_lock_x" onkeydown="if(event.key==='Enter')unlockSession()">
             <button onclick="unlockSession()" class="lock-btn lock-btn-primary">🔓 Déverrouiller</button>
             <button onclick="logoutFromLock()" class="lock-btn lock-btn-secondary">Déconnexion</button>
         </div>
