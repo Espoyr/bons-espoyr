@@ -857,7 +857,7 @@
             <!-- ========== ZONE ENCODAGE PAIEMENT 571 ========== -->
             <div id="paiementZone" class="hidden paiement-zone mb-4">
                 <div class="pz-title">
-                    <span>▪</span> 571 — ENCODAGE PAIEMENT
+                    <span>▪</span> 571 — Caisse Espoyr # (hors bilan)
                 </div>
 
                 <!-- Description -->
@@ -880,16 +880,6 @@
                 </div>
 
                 <hr class="pz-separator">
-
-                <!-- Bons # à rendre -->
-                <div class="pz-row">
-                    <span class="pz-label"> Demande de Bons # par le client</span>
-                    <div class="pz-input-wrap">
-                        
-                        <input type="number" id="pzHashRendu" class="pz-input-red" step="0.5" min="0" placeholder="0,0" oninput="pzCalculer()">
-                        <span class="pz-unit">#</span>
-                    </div>
-                </div>
 
                 <!-- # reçus du client -->
                 <div class="pz-row">
@@ -918,8 +908,20 @@
                     <span id="pzBancontactVal" class="pz-bancontact-value">0,00 €</span>
                 </div>
 
-                <!-- Ligne double — Monnaie € à rendre -->
+                <!-- Ligne double — Monnaie rendue -->
                 <hr class="pz-double-separator">
+
+                <!-- Bons # à rendre -->
+                <div class="pz-row">
+                    <span class="pz-label"> Demande de Bons # par le client</span>
+                    <div class="pz-input-wrap">
+                        
+                        <input type="number" id="pzHashRendu" class="pz-input-red" step="0.5" min="0" placeholder="0,0" oninput="pzCalculer()">
+                        <span class="pz-unit">#</span>
+                    </div>
+                </div>
+
+                <!-- Monnaie € à rendre -->
                 <div class="pz-monnaie-row">
                     <span class="pz-monnaie-label">💶 Monnaie € à rendre</span>
                     
